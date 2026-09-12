@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#55B8B3" />
+  <meta name="description" content="Roomie 是一个温暖、好玩的合租生活协作空间，帮室友一起管账单、值日、物品和公约。" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%2355B8B3'/%3E%3Ccircle cx='25' cy='32' r='10' fill='none' stroke='%23FFF9F0' stroke-width='7'/%3E%3Ccircle cx='39' cy='32' r='10' fill='none' stroke='%23FFF9F0' stroke-width='7'/%3E%3C/svg%3E" />
+  <title>Roomie · 和室友一起经营我们的小屋</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./overrides.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="主导航">
+      <button class="brand" data-page="home" aria-label="返回首页">
+        <span class="brand-word">R<span class="brand-oo"><i></i><i></i></span>mie</span>
+        <span class="brand-sub">一起经营我们的小屋</span>
+      </button>
+
+      <nav class="nav-list">
+        <button class="nav-item active" data-page="home"><span>⌂</span><b>小屋</b></button>
+        <button class="nav-item" data-page="bills"><span>¥</span><b>AA 账单</b><em>2</em></button>
+        <button class="nav-item" data-page="chores"><span>✓</span><b>小屋任务</b><em id="taskNavCount">2</em></button>
+        <button class="nav-item" data-page="supplies"><span>□</span><b>公共物品</b><em>2</em></button>
+        <button class="nav-item" data-page="rules"><span>♡</span><b>小屋公约</b><em>1</em></button>
+      </nav>
+
+      <div class="house-card">
+        <div class="house-mini-icon">🏠</div>
+        <div><b>晚风公寓</b><small>4 位 Roomie</small></div>
+        <button aria-label="更多选项">•••</button>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div class="mobile-brand">Roomie</div>
+        <div class="greeting"><span id="greetingText">下午好，林夏</span><small>今天也一起照顾好小屋吧</small></div>
+        <div class="top-actions">
+          <button class="icon-btn notification" aria-label="查看通知">♢<span></span></button>
+          <button class="profile-pill" id="openAvatar"><span class="avatar avatar-linxia">夏</span><b>林夏</b><small>Lv. 3</small></button>
+        </div>
+      </header>
+
+      <section class="page active" id="homePage">
+        <div class="home-grid">
+          <article class="room-scene" id="roomScene">
+            <div class="scene-overlay">
+              <div>
+                <span class="eyebrow">晚风公寓 · 9月12日</span>
+                <h1>欢迎回家，<span id="homeName">林夏</span></h1>
+                <p>今天的小屋很有精神，厨房还等你来守护。</p>
+              </div>
+              <div class="harmony-card">
+                <div class="harmony-head"><span>本周默契值</span><b id="harmonyValue">78</b></div>
+                <div class="progress"><i id="harmonyBar" style="width:78%"></i></div>
+                <small>再完成 2 件小事，就能点亮新徽章</small>
+              </div>
+            </div>
+            <div class="scene-status"><span><i></i> 小屋状态不错</span><button id="sceneChoreBtn">去整理厨房 →</button></div>
+          </article>
+
+          <aside class="today-panel">
+            <div class="section-title"><div><span class="eyebrow">TODAY</span><h2>今天的小事</h2></div><span class="task-count" id="taskCount">4 件</span></div>
+            <div class="task-list" id="homeTasks">
+              <button class="task-row" data-action="chore">
+                <span class="task-icon mint">🫧</span><span><b>守护一下厨房</b><small>长期轮班 · 你是本期 Roomie</small></span><i>去完成</i>
+              <button class="task-row" data-page="bills">
+                <span class="task-icon coral">¥</span><span><b>结清 2 笔小账单</b><small>共 ¥86.50 · 不着急，记得就好</small></span><i>去看看</i>
+              </button>
+              <button class="task-row" data-action="claim-lamp">
+                <span class="task-icon yellow">💡</span><span><b>更换客厅灯泡</b><small>林夏提议 · 等待一位 Roomie 认领</small></span><i>我来做</i>
+              </button>
+              <button class="task-row" data-page="rules">
+                <span class="task-icon sage">♡</span><span><b>有一条约定等你确认</b><small>晚上 23:00 后保持安静</small></span><i>去确认</i>
+              </button>
+            </div>
+          </aside>
+        </div>
+
+        <div class="dashboard-row">
+          <section class="card spending-card">
+            <div class="section-title compact"><div><span class="eyebrow">SEPTEMBER</span><h2>本月公共支出</h2></div><button class="text-btn" data-page="bills">看全部 →</button></div>
+            <div class="spending-main"><strong>¥2,486</strong><span>比上月少了 ¥136，很棒</span></div>
+            <div class="spending-bars" aria-label="支出分类图表">
+              <div><span>房租</span><i><b style="width:72%"></b></i><em>¥1,800</em></div>
+              <div><span>水电</span><i><b style="width:38%"></b></i><em>¥386</em></div>
+              <div><span>日用</span><i><b style="width:28%"></b></i><em>¥300</em></div>
+            </div>
+          </section>
+
+          <section class="card activity-card">
+            <div class="section-title compact"><div><span class="eyebrow">ROOMIE MOMENTS</span><h2>小屋动态</h2></div><button class="icon-btn">•••</button></div>
+            <div class="activity"><span class="avatar avatar-nina">N</span><p><b>Nina</b> 完成了卫生间清洁<small>10 分钟前 · 默契值 +10</small></p><span>✨</span></div>
+            <div class="activity"><span class="avatar avatar-chen">陈</span><p><b>陈默</b> 垫付了本月电费 ¥286<small>昨天 20:34</small></p><span>💡</span></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="page" id="billsPage">
+        <div class="page-heading"><div><span class="eyebrow">SHARED BILLS</span><h1>AA 账单</h1><p>每一笔都清清楚楚，生活也轻轻松松。</p></div><button class="primary-btn" id="addBillBtn">＋ 记一笔</button></div>
+        <div class="summary-cards">
+          <article class="metric coral-bg"><span>我的待结清</span><strong id="dueAmount">¥86.50</strong><small>2 笔小账单</small></article>
+          <article class="metric teal-bg"><span>本月公共支出</span><strong>¥2,486</strong><small>比上月少 5.2%</small></article>
+          <article class="metric sage-bg"><span>大家都结清的</span><strong>12 笔</strong><small>本月进度 86%</small></article>
+        </div>
+        <div class="card list-card">
+          <div class="filter-row"><h2>最近账单</h2><div><button class="chip active">全部</button><button class="chip">待结清</button><button class="chip">已结清</button></div></div>
+          <div class="bill-row" id="electricBill"><span class="bill-icon">💡</span><div><b>9 月电费</b><small>陈默垫付 · 4 人均摊</small></div><div class="member-stack"><span class="avatar avatar-linxia">夏</span><span class="avatar avatar-chen">陈</span><span class="avatar avatar-yu">宇</span><span class="avatar avatar-nina">N</span></div><div class="bill-price"><b>¥71.50</b><small>我的份额</small></div><button class="soft-btn pay-btn">结清</button></div>
+          <div class="bill-row" id="tissueBill"><span class="bill-icon">🧻</span><div><b>纸巾与洗洁精</b><small>Nina 垫付 · 4 人均摊</small></div><div class="member-stack"><span class="avatar avatar-linxia">夏</span><span class="avatar avatar-chen">陈</span><span class="avatar avatar-yu">宇</span><span class="avatar avatar-nina">N</span></div><div class="bill-price"><b>¥15.00</b><small>我的份额</small></div><button class="soft-btn pay-btn">结清</button></div>
+          <div class="bill-row done"><span class="bill-icon">📶</span><div><b>9 月宽带</b><small>小宇垫付 · 4 人均摊</small></div><div class="member-stack"><span class="avatar avatar-linxia">夏</span><span class="avatar avatar-chen">陈</span><span class="avatar avatar-yu">宇</span><span class="avatar avatar-nina">N</span></div><div class="bill-price"><b>¥30.00</b><small>我的份额</small></div><span class="done-label">✓ 已结清</span></div>
+        </div>
+      </section>
+
+      <section class="page" id="choresPage">
+        <div class="page-heading"><div><span class="eyebrow">OUR HOUSE TASKS</span><h1>小屋任务</h1><p>谁提出、谁认领、谁完成，每件小事都有温柔的回应。</p></div><button class="primary-btn" id="openTaskModal">＋ 发起任务</button></div>
+        <div class="task-tabs" role="tablist"><button class="task-tab active" data-task-view="schedule" role="tab">这周安排 <span id="scheduleCount">3</span></button><button class="task-tab" data-task-view="claim" role="tab">待认领 <span id="claimCount">2</span></button><div class="task-tab-note">完成后直接结案 · 默契值只加不扣</div></div>
+        <div class="task-view active" id="scheduleView">
+          <div class="week-strip">
+            <button><small>周一</small><b>8</b><span>✓</span></button><button><small>周二</small><b>9</b><span>✓</span></button><button><small>周三</small><b>10</b><span>✓</span></button><button><small>周四</small><b>11</b><span>✓</span></button><button class="today"><small>今天</small><b>12</b><span>2</span></button><button><small>周六</small><b>13</b><span>1</span></button><button><small>周日</small><b>14</b><span>1</span></button>
+          </div>
+          <div class="task-board" id="scheduleTasks"></div>
+        </div>
+        <div class="task-view" id="claimView"><div class="claim-intro"><span>✦</span><div><b>这两件小事，正等一位 Roomie</b><small>认领不是领命，而是对共同生活的一次回应。</small></div></div><div class="claim-grid" id="claimTasks"></div></div>
+      </section>
+
+      <section class="page" id="suppliesPage">
+        <div class="page-heading"><div><span class="eyebrow">OUR PANTRY</span><h1>公共物品</h1><p>像查看储物柜一样简单，再也不会突然没纸用。</p></div><button class="primary-btn">＋ 登记物品</button></div>
+        <div class="pantry card">
+          <div class="pantry-head"><div><h2>小屋储物柜</h2><p>2 件物品需要留意</p></div><div class="legend"><span><i class="stock-good"></i>充足</span><span><i class="stock-low"></i>快见底</span><span><i class="stock-empty"></i>用完啦</span></div></div>
+          <div class="shelf-grid">
+            <article class="supply-item urgent" id="trashSupply"><span class="supply-emoji">🗑️</span><div><b>垃圾袋</b><small>已经用完啦</small></div><button class="restock-btn">我来补</button></article>
+            <article class="supply-item low"><span class="supply-emoji">🧴</span><div><b>洗洁精</b><small>大约还能用 3 天</small></div><button class="soft-btn">提醒一下</button></article>
+            <article class="supply-item"><span class="supply-emoji">🧻</span><div><b>卷纸</b><small>库存充足</small></div><span class="status-good">状态不错</span></article>
+            <article class="supply-item"><span class="supply-emoji">🧽</span><div><b>清洁海绵</b><small>库存充足</small></div><span class="status-good">状态不错</span></article>
+            <article class="supply-item"><span class="supply-emoji">🍚</span><div><b>大米</b><small>还剩半袋</small></div><span class="status-good">状态不错</span></article>
+            <article class="supply-item"><span class="supply-emoji">🧂</span><div><b>调味料</b><small>上周刚补齐</small></div><span class="status-good">状态不错</span></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="rulesPage">
+        <div class="page-heading"><div><span class="eyebrow">OUR AGREEMENTS</span><h1>小屋公约</h1><p>不是冷冰冰的规定，是我们一起选择的生活方式。</p></div><button class="primary-btn">＋ 发起新约定</button></div>
+        <div class="rules-layout">
+          <article class="rule-feature card" id="quietRule"><div class="rule-tape"></div><span class="tag coral">等待你的确认</span><div class="rule-illustration">🌙</div><h2>晚上 23:00 后，进入小屋安静时间</h2><p>看视频、听音乐时戴上耳机；如果有朋友来，提前在群里和大家说一声。</p><div class="signatures"><span class="avatar avatar-chen">陈</span><span class="avatar avatar-yu">宇</span><span class="avatar avatar-nina">N</span><span class="avatar empty">你</span><small>3 / 4 位 Roomie 已确认</small></div><button class="primary-btn" id="agreeRule">我也同意</button></article>
+          <div class="rule-list">
+            <article class="card mini-rule"><span>🧊</span><div><small>冰箱与食物</small><h3>写了名字的食物不随意取用</h3><p>全员已确认 · 9月1日生效</p></div><b>✓</b></article>
+            <article class="card mini-rule"><span>👟</span><div><small>公共区域</small><h3>鞋子放进鞋柜，玄关保持通畅</h3><p>全员已确认 · 8月28日生效</p></div><b>✓</b></article>
+            <article class="card mini-rule"><span>🐈</span><div><small>毛孩子</small><h3>喂过团子后，在群里发个表情</h3><p>全员已确认 · 8月20日生效</p></div><b>✓</b></article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="mobile-nav" aria-label="移动端导航">
+      <button class="active" data-page="home"><span>⌂</span>小屋</button><button data-page="bills"><span>¥</span>账单</button><button data-page="chores"><span>✓</span>任务</button><button data-page="supplies"><span>□</span>物品</button><button data-page="rules"><span>♡</span>公约</button>
+    </nav>
+  </div>
+
+  <div class="modal-backdrop" id="avatarModal" role="dialog" aria-modal="true" aria-labelledby="avatarTitle">
+    <div class="modal avatar-modal">
+      <button class="close-btn" data-close="avatarModal" aria-label="关闭">×</button>
+      <span class="eyebrow">YOUR ROOMIE</span><h2 id="avatarTitle">捏一个属于你的 Roomie</h2><p>让大家一眼就认出你，也让小屋多一点你的颜色。</p>
+      <div class="avatar-builder">
+        <div class="big-avatar"><span class="avatar-sprite avatar-sprite-2" id="avatarPreview" aria-label="当前 Q 版形象"></span></div>
+        <div class="builder-controls">
+          <label>你的名字<input id="nameInput" value="林夏" maxlength="8" /></label>
+          <fieldset><legend>选择你的 Q 版形象</legend><div class="avatar-options" aria-label="Q版形象选项"><button class="avatar-choice" data-avatar="1"><span class="avatar-sprite avatar-sprite-1"></span></button><button class="avatar-choice selected" data-avatar="2"><span class="avatar-sprite avatar-sprite-2"></span></button><button class="avatar-choice" data-avatar="3"><span class="avatar-sprite avatar-sprite-3"></span></button><button class="avatar-choice" data-avatar="4"><span class="avatar-sprite avatar-sprite-4"></span></button><button class="avatar-choice" data-avatar="5"><span class="avatar-sprite avatar-sprite-5"></span></button><button class="avatar-choice" data-avatar="6"><span class="avatar-sprite avatar-sprite-6"></span></button><button class="avatar-choice" data-avatar="7"><span class="avatar-sprite avatar-sprite-7"></span></button><button class="avatar-choice" data-avatar="8"><span class="avatar-sprite avatar-sprite-8"></span></button></div></fieldset>
+          <fieldset><legend>代表色</legend><div class="option-row color-options"><button class="selected" data-color="#55B8B3" style="--swatch:#55B8B3"></button><button data-color="#FF896F" style="--swatch:#FF896F"></button><button data-color="#EAB95F" style="--swatch:#EAB95F"></button><button data-color="#8E83CC" style="--swatch:#8E83CC"></button></div></fieldset>
+        </div>
+      </div>
+      <button class="primary-btn full" id="saveAvatar">保存我的形象</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="billModal" role="dialog" aria-modal="true" aria-labelledby="billTitle">
+    <form class="modal bill-modal" id="billForm">
+      <button type="button" class="close-btn" data-close="billModal" aria-label="关闭">×</button>
+      <span class="eyebrow">NEW SHARED BILL</span><h2 id="billTitle">记一笔共同开销</h2>
+      <label>花在什么上？<input name="title" placeholder="例如：厨房纸巾" required /></label>
+      <div class="form-grid"><label>总金额<input name="amount" type="number" min="0.01" step="0.01" placeholder="¥ 0.00" required /></label><label>谁先垫付？<select name="payer"><option>林夏</option><option>陈默</option><option>小宇</option><option>Nina</option></select></label></div>
+      <fieldset><legend>一起分摊的 Roomie</legend><div class="member-checks"><label><input type="checkbox" checked /> 林夏</label><label><input type="checkbox" checked /> 陈默</label><label><input type="checkbox" checked /> 小宇</label><label><input type="checkbox" checked /> Nina</label></div></fieldset>
+      <button class="primary-btn full">平均分摊并保存</button>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" id="taskModal" role="dialog" aria-modal="true" aria-labelledby="taskTitle">
+    <form class="modal task-modal" id="taskForm">
+      <button type="button" class="close-btn" data-close="taskModal" aria-label="关闭">×</button>
+      <span class="eyebrow">A LITTLE HOUSE TASK</span><h2 id="taskTitle">发起一件小事</h2><p>把需求说清楚，让室友用舒服的方式接住它。</p>
+      <label>这件事是什么？<input name="taskTitle" placeholder="例如：周末一起整理冰箱" required /></label>
+      <label>补充说明 <input name="taskDescription" placeholder="写下需要大家知道的细节（可选）" /></label>
+      <div class="form-grid"><label>任务种类<select name="taskKind"><option value="temporary">临时任务</option><option value="recurring">长期任务</option></select></label><label>截止时间<select name="taskDue"><option>本周日</option><option>今天</option><option>明天</option><option>下周</option></select></label></div>
+      <div class="form-grid"><label>执行方式<select name="taskMode"><option value="claim">公开认领</option><option value="assign">指定室友</option><option value="rotate">成员轮班</option></select></label><label>默契值<select name="taskPoints"><option value="5">+5</option><option value="10">+10</option><option value="15">+15</option></select></label></div>
+      <label id="assigneeField">指定给谁<select name="taskAssignee"><option>林夏</option><option>陈默</option><option>小宇</option><option>Nina</option></select></label>
+      <label id="cycleField" class="hidden-field">重复周期<select name="taskCycle"><option>每周</option><option>每两周</option><option>每月</option></select></label>
+      <button class="primary-btn full">发起这件小事</button>
+    </form>
+  </div>
+
+  <div class="celebration" id="celebration" role="status" aria-live="polite"><span>✨</span><div><b>小屋默契值 +10</b><small id="celebrationText">谢谢你照顾我们的家</small></div></div>
+  <script src="./app.js"></script>
+</body>
+</html>
