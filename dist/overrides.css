@@ -183,3 +183,155 @@
   .claim-grid { grid-template-columns: 1fr; }
   .claim-card p { min-height: unset; }
 }
+
+/* Shared house build loop */
+.room-scene { position: relative; overflow: hidden; }
+.house-decor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.decor-item {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: rgba(255, 249, 240, .88);
+  box-shadow: 0 10px 24px rgba(23, 49, 48, .18);
+  font-size: 1.55rem;
+  opacity: 0;
+  transform: translateY(12px) scale(.86);
+  transition: opacity .45s ease, transform .45s ease;
+}
+.decor-item.is-on { opacity: 1; transform: translateY(0) scale(1); }
+.decor-item[data-unlock="plant"] { left: 8%; top: 18%; }
+.decor-item[data-unlock="lamp"] { right: 12%; top: 22%; }
+.decor-item[data-unlock="sofa"] { left: 18%; bottom: 22%; }
+.decor-item[data-unlock="kitchen"] { right: 18%; bottom: 26%; }
+.decor-item[data-unlock="frame"] { left: 46%; top: 14%; }
+
+/* Game-like scene: image first, HUD overlays only */
+.room-scene::after {
+  background:
+    linear-gradient(180deg, rgba(23, 49, 48, .08), transparent 28%, transparent 62%, rgba(23, 49, 48, .28));
+}
+.scene-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 16px 16px 72px;
+  pointer-events: none;
+}
+.scene-overlay .harmony-card {
+  pointer-events: auto;
+  width: min(240px, 100%);
+  margin: 0;
+}
+.scene-status {
+  position: absolute;
+  z-index: 3;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+}
+.scene-status-cta {
+  display: flex;
+  justify-content: flex-end;
+}
+.scene-status-cta button {
+  pointer-events: auto;
+}
+#buildBar { background: linear-gradient(90deg, #f3c86d, #ff896f); }
+
+.unlock-card { padding: 22px; }
+.chores-build { margin-bottom: 18px; }
+.unlock-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+.unlock-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #f4f7f4;
+  opacity: .55;
+  filter: grayscale(.4);
+}
+.unlock-item.is-on {
+  opacity: 1;
+  filter: none;
+  background: #e8f6f2;
+}
+.unlock-item span { font-size: 1.35rem; }
+.unlock-item b, .unlock-item small { display: block; }
+.unlock-item b { font-size: .78rem; }
+.unlock-item small { color: var(--muted); font-size: .65rem; }
+.roommate-help { margin-top: 14px; }
+
+.room-scene[data-stage="1"]::after,
+.room-scene[data-stage="2"]::after,
+.room-scene[data-stage="3"]::after,
+.room-scene[data-stage="4"]::after,
+.room-scene[data-stage="5"]::after {
+  background:
+    linear-gradient(180deg, rgba(23, 49, 48, .06), transparent 30%, transparent 58%, rgba(23, 49, 48, .24));
+}
+.room-scene[data-stage="5"] { box-shadow: inset 0 0 0 2px rgba(243, 200, 109, .35); }
+
+@media (max-width: 720px) {
+  .decor-item { width: 42px; height: 42px; font-size: 1.15rem; border-radius: 14px; }
+  .decor-item[data-unlock="plant"] { left: 4%; top: 36%; }
+  .decor-item[data-unlock="lamp"] { right: 5%; top: 40%; }
+  .decor-item[data-unlock="sofa"] { left: 8%; bottom: 26%; }
+  .decor-item[data-unlock="kitchen"] { right: 7%; bottom: 30%; }
+  .decor-item[data-unlock="frame"] { left: auto; right: 12%; top: 32%; }
+
+  .room-scene { min-height: 460px; }
+  .scene-overlay {
+    padding: 12px 12px 68px;
+    align-items: flex-start;
+    justify-content: stretch;
+  }
+  .scene-overlay .harmony-card {
+    width: 100%;
+    padding: 12px 14px;
+  }
+  .harmony-card small { display: block; margin-top: 4px; line-height: 1.35; }
+  .scene-status {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+  }
+  .scene-status-cta button {
+    max-width: 100%;
+    padding: 8px 12px;
+    font-size: .72rem;
+  }
+
+  .unlock-grid { grid-template-columns: 1fr; }
+  .chores-build { margin-bottom: 14px; }
+
+  body {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+  .mobile-nav {
+    left: max(10px, env(safe-area-inset-left, 0px));
+    right: max(10px, env(safe-area-inset-right, 0px));
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  .celebration {
+    left: max(16px, env(safe-area-inset-left, 0px));
+    right: max(16px, env(safe-area-inset-right, 0px));
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  }
+}
