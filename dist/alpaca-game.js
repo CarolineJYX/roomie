@@ -30,14 +30,7 @@
         </header>
         <div class="rumi-stage" aria-hidden="true">
           <div class="rumi-shadow"></div>
-          <div class="rumi-alpaca" data-rumi-character>
-            <i class="rumi-ear left"></i><i class="rumi-ear right"></i>
-            <div class="rumi-neck"></div>
-            <div class="rumi-head"><i class="rumi-fringe"></i><span class="rumi-eye left"></span><span class="rumi-eye right"></span><span class="rumi-muzzle">⌣</span></div>
-            <div class="rumi-body"><i class="rumi-badge">⌂</i></div>
-            <i class="rumi-leg one"></i><i class="rumi-leg two"></i><i class="rumi-leg three"></i><i class="rumi-leg four"></i>
-            <div class="rumi-scarf"></div>
-          </div>
+          <div class="rumi-alpaca" data-rumi-character><img src="./assets/rumi-full.png" alt="" /></div>
           <div class="rumi-brush">▥</div>
           <div class="rumi-fluff"><i></i><i></i><i></i><i></i><i></i></div>
           <div class="rumi-new-ball">〰</div>

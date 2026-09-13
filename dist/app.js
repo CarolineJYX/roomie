@@ -3,14 +3,20 @@ const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
 const seedTasks = [
-  { id: 'kitchen', icon: '🫧', title: '厨房焕新计划', description: '擦灶台、清理水槽、拖一拖地面，大约 15 分钟。', kind: 'recurring', mode: 'rotate', proponent: '林夏', assignee: '林夏', due: '今天', period: '每周 · 成员轮班', points: 10, status: 'doing', active: true },
-  { id: 'delivery', icon: '📦', title: '领取物业快递', description: '物业前台有一份公共区域收纳盒，请顺路带回家。', kind: 'temporary', mode: 'assign', proponent: 'Nina', assignee: '陈默', due: '今天 18:00 前', period: '一次性 · 指定任务', points: 5, status: 'doing', active: true },
-  { id: 'bathroom', icon: '🛁', title: '卫生间清洁', description: '镜子、台面和地面都已经清爽啦。', kind: 'recurring', mode: 'rotate', proponent: '小宇', assignee: 'Nina', due: '昨天', period: '每周 · 成员轮班', points: 10, status: 'done', active: true },
-  { id: 'fridge', icon: '🧊', title: '周日一起整理冰箱', description: '看看过期食物，也给下周的食材腾出一点空间。', kind: 'recurring', mode: 'claim', proponent: '陈默', assignee: null, due: '本周日', period: '每周 · 公开认领', points: 10, status: 'claim', active: true },
-  { id: 'lamp', icon: '💡', title: '更换客厅灯泡', description: '客厅落地灯忽明忽暗，需要一只 E27 暖光灯泡。', kind: 'temporary', mode: 'claim', proponent: '林夏', assignee: null, due: '今天', period: '一次性 · 公开认领', points: 5, status: 'claim', active: true }
+  { id: 'kitchen', icon: '🫧', title: '厨房焕新计划', description: '擦灶台、清理水槽、拖一拖地面，大约 20 分钟。', kind: 'recurring', mode: 'rotate', proponent: '林夏', assignee: '林夏', due: '今天', period: '每周 · 成员轮班', points: 10, priority: 'high', estimateMinutes: 20, status: 'doing', active: true },
+  { id: 'delivery', icon: '📦', title: '领取物业快递', description: '物业前台有一份公共区域收纳盒，请顺路带回家。', kind: 'temporary', mode: 'assign', proponent: 'Nina', assignee: '陈默', due: '今天 18:00 前', period: '一次性 · 指定任务', points: 5, priority: 'normal', estimateMinutes: 10, status: 'doing', active: true },
+  { id: 'bathroom', icon: '🛁', title: '卫生间清洁', description: '镜子、台面和地面都已经清爽啦。', kind: 'recurring', mode: 'rotate', proponent: '小宇', assignee: 'Nina', due: '昨天', period: '每周 · 成员轮班', points: 10, priority: 'normal', estimateMinutes: 20, status: 'done', active: true },
+  { id: 'fridge', icon: '🧊', title: '周日一起整理冰箱', description: '看看过期食物，也给下周的食材腾出一点空间。', kind: 'recurring', mode: 'claim', proponent: '陈默', assignee: null, due: '本周日', period: '每周 · 公开认领', points: 10, priority: 'low', estimateMinutes: 15, status: 'claim', active: true },
+  { id: 'lamp', icon: '💡', title: '更换客厅灯泡', description: '客厅落地灯忽明忽暗，需要一只 E27 暖光灯泡。', kind: 'temporary', mode: 'claim', proponent: '林夏', assignee: null, due: '今天', period: '一次性 · 公开认领', points: 5, priority: 'high', estimateMinutes: 10, status: 'claim', active: true }
 ];
 
-const initialTasks = saved.tasks ?? seedTasks;
+const taskDefaults = {
+  kitchen: ['high', 20], delivery: ['normal', 10], bathroom: ['normal', 20], fridge: ['low', 15], lamp: ['high', 10]
+};
+const initialTasks = (saved.tasks ?? seedTasks).map(task => {
+  const fallback = taskDefaults[task.id] || ['normal', 15];
+  return { ...task, priority: task.priority ?? fallback[0], estimateMinutes: task.estimateMinutes ?? fallback[1] };
+});
 const appState = {
   restocked: saved.restocked ?? false,
   paid: saved.paid ?? 0,
@@ -18,6 +24,11 @@ const appState = {
   name: saved.name ?? '林夏',
   avatar: saved.avatar ?? 2,
   color: saved.color ?? '#55B8B3',
+  house: {
+    name: saved.house?.name ?? '晚风公寓',
+    inviteCode: saved.house?.inviteCode ?? 'ROOMIE88',
+    joinedCode: saved.house?.joinedCode ?? null
+  },
   tasks: initialTasks,
   alpaca: saved.alpaca ?? { brushProgress: 1, yarnBalls: 4, lifetimeYarnBalls: 4 },
   charity: saved.charity ?? { houseDonationCents: 0, selectedCause: null, receipts: [] },
@@ -50,6 +61,8 @@ function showPage(page) {
 function openModal(id) { $(`#${id}`).classList.add('open'); }
 function closeModal(id) { $(`#${id}`).classList.remove('open'); }
 function taskType(task) { return task.kind === 'recurring' ? '长期任务' : '临时任务'; }
+function priorityLabel(priority) { return priority === 'high' ? '高优先' : priority === 'low' ? '可稍后' : '普通'; }
+function priorityRank(priority) { return priority === 'high' ? 0 : priority === 'normal' ? 1 : 2; }
 function taskStatus(task) {
   if (!task.active && task.kind === 'recurring') return '已暂停';
   if (task.status === 'done') return '已完成';
@@ -68,52 +81,83 @@ function taskCard(task) {
         : task.id === 'kitchen' && mine
           ? `<button class="soft-btn" data-task-action="pause" data-id="${task.id}">暂停计划</button>`
           : `<span class="task-assignee">${task.assignee} 正在处理</span>`;
-  return `<article class="card house-task ${task.status === 'done' ? 'is-done' : ''} ${!task.active ? 'is-paused' : ''}" data-task-id="${task.id}"><div class="task-symbol">${task.icon}</div><div class="task-copy"><div class="task-meta"><span class="kind-chip ${task.kind}">${taskType(task)}</span><span>${task.period}</span></div><h2>${task.title}</h2><p>${task.description}</p><div class="task-foot"><span>${task.proponent} 提议</span><span>·</span><span>${task.assignee ? `本期由 ${task.assignee}` : '还没有人认领'}</span><span>·</span><span>${task.due}</span><b>完成可梳毛</b></div></div><div class="task-side"><span class="status-chip ${task.status}">${taskStatus(task)}</span>${controls}</div></article>`;
+  return `<article class="card house-task ${task.status === 'done' ? 'is-done' : ''} ${!task.active ? 'is-paused' : ''}" data-task-id="${task.id}"><div class="task-symbol">${task.icon}</div><div class="task-copy"><div class="task-meta"><span class="kind-chip ${task.kind}">${taskType(task)}</span><span class="priority-chip ${task.priority}">${priorityLabel(task.priority)}</span><span>预计 ${task.estimateMinutes} 分钟</span><span>${task.period}</span></div><h2>${task.title}</h2><p>${task.description}</p><div class="task-foot"><span>${task.proponent} 提议</span><span>·</span><span>${task.assignee ? `本期由 ${task.assignee}` : '还没有人认领'}</span><span>·</span><span>${task.due}</span><b>完成可梳毛</b></div></div><div class="task-side"><span class="status-chip ${task.status}">${taskStatus(task)}</span>${controls}</div></article>`;
 }
 
 function claimCard(task) {
-  return `<article class="card claim-card" data-task-id="${task.id}"><div class="claim-card-top"><span class="task-symbol">${task.icon}</span><span class="kind-chip ${task.kind}">${taskType(task)}</span></div><h2>${task.title}</h2><p>${task.description}</p><div class="claim-meta"><span>${task.proponent} 提议</span><span>${task.due}</span><span>完成可为绒米梳毛</span></div><button class="primary-btn full" data-task-action="claim" data-id="${task.id}">我来做</button></article>`;
+  return `<article class="card claim-card" data-task-id="${task.id}"><div class="claim-card-top"><span class="task-symbol">${task.icon}</span><div><span class="kind-chip ${task.kind}">${taskType(task)}</span><span class="priority-chip ${task.priority}">${priorityLabel(task.priority)}</span></div></div><h2>${task.title}</h2><p>${task.description}</p><div class="claim-meta"><span>${task.proponent} 提议</span><span>${task.due}</span><span>预计 ${task.estimateMinutes} 分钟</span></div><button class="primary-btn full" data-task-action="claim" data-id="${task.id}">我来做</button></article>`;
 }
 
 function renderHouse() {
-  $('#houseStageLabel').textContent = `暖心毛线 · ${appState.alpaca.yarnBalls}/5`;
-  const choreBtn = $('#sceneChoreBtn');
-  const myDoing = appState.tasks.find(task => isMine(task) && task.status === 'doing' && task.active);
-  const claimable = appState.tasks.find(task => task.status === 'claim' && task.active);
-  const compact = window.matchMedia('(max-width: 720px)').matches;
-  if (myDoing) {
-    choreBtn.textContent = compact ? '去完成任务 →' : `去完成「${myDoing.title}」 →`;
-    choreBtn.dataset.jump = 'complete';
-    choreBtn.dataset.id = myDoing.id;
-  } else if (claimable) {
-    choreBtn.textContent = compact ? '去认领任务 →' : `去认领「${claimable.title}」 →`;
-    choreBtn.dataset.jump = 'chores';
-    delete choreBtn.dataset.id;
-  } else {
-    choreBtn.textContent = compact ? '去看任务 →' : '去看看小屋任务 →';
-    choreBtn.dataset.jump = 'chores';
-    delete choreBtn.dataset.id;
-  }
+  const yarnBalls = Math.min(appState.alpaca.yarnBalls, 5);
+  const yarnText = $('#petYarnText');
+  const progressFill = $('#petProgressFill');
+  const petEntry = $('.pet-entry');
+  if (yarnText) yarnText.textContent = `暖心毛线 ${yarnBalls}/5`;
+  if (progressFill) progressFill.style.width = `${yarnBalls * 20}%`;
+  if (petEntry) petEntry.setAttribute('aria-label', `进入小屋公益，暖心毛线 ${yarnBalls}/5`);
   syncProfile();
 }
 
 function renderHomeTasks() {
-  const rows = [];
-  appState.tasks.filter(task => isMine(task) && task.status === 'doing' && task.active).forEach(task => {
-    rows.push(`<button class="task-row" data-task-action="complete" data-id="${task.id}"><span class="task-icon mint">${task.icon}</span><span><b>${task.title}</b><small>本期由你 · 完成后为绒米梳毛</small></span><i>去完成</i></button>`);
-  });
-  appState.tasks.filter(task => task.status === 'claim' && task.active).forEach(task => {
-    rows.push(`<button class="task-row" data-task-action="claim" data-id="${task.id}"><span class="task-icon yellow">${task.icon}</span><span><b>${task.title}</b><small>${task.proponent} 提议 · 等待认领</small></span><i>我来做</i></button>`);
-  });
-  if (!appState.ruleAgreed) {
-    rows.push('<button class="task-row" data-page="rules"><span class="task-icon sage">♡</span><span><b>有一条约定等你确认</b><small>晚上 23:00 后保持安静</small></span><i>去确认</i></button>');
-  }
-  if (appState.paid < 2) {
-    rows.push(`<button class="task-row" data-page="bills"><span class="task-icon coral">¥</span><span><b>结清 ${2 - appState.paid} 笔小账单</b><small>不着急，记得就好</small></span><i>去看看</i></button>`);
-  }
-  $('#homeTasks').innerHTML = rows.join('') || '<p class="empty-message">今天的小事都安顿好啦。</p>';
+  const mine = appState.tasks.filter(task => isMine(task) && task.status === 'doing' && task.active).sort((a, b) => priorityRank(a.priority) - priorityRank(b.priority));
+  const claimable = appState.tasks.filter(task => task.status === 'claim' && task.active).sort((a, b) => priorityRank(a.priority) - priorityRank(b.priority));
+  const rows = mine.map(task => `<button class="task-row" data-task-action="complete" data-id="${task.id}"><span class="task-icon mint">${task.icon}</span><span><b>${task.title}</b><small><em class="priority-text ${task.priority}">${priorityLabel(task.priority)}</em> · 预计 ${task.estimateMinutes} 分钟 · ${task.due}</small></span><i>完成</i></button>`)
+    .concat(claimable.map(task => `<button class="task-row" data-task-action="claim" data-id="${task.id}"><span class="task-icon yellow">${task.icon}</span><span><b>${task.title}</b><small><em class="priority-text ${task.priority}">${priorityLabel(task.priority)}</em> · 预计 ${task.estimateMinutes} 分钟 · ${task.proponent} 提议</small></span><i>我来做</i></button>`));
+  $('#homeTasks').innerHTML = rows.slice(0, 5).join('') || '<p class="empty-message">近期任务都安顿好啦。</p>';
   const actionable = appState.tasks.filter(task => (isMine(task) && task.status === 'doing' && task.active) || (task.status === 'claim' && task.active)).length;
-  $('#taskCount').textContent = `${actionable} 件`;
+  const taskCount = $('#taskCount');
+  if (taskCount) taskCount.textContent = `${actionable} 件`;
+}
+
+function renderHomeBills() {
+  const list = $('#homeBills');
+  if (!list) return;
+  const allPayButtons = $$('.pay-btn');
+  const unpaid = allPayButtons
+    .map((button, index) => ({ button, index, row: button.closest('.bill-row') }))
+    .filter(item => !item.row.classList.contains('paid'))
+    .slice(0, 2);
+  list.innerHTML = unpaid.map(({ index, row }) => {
+    const icon = $('.bill-icon', row).textContent;
+    const title = $('div:nth-child(2) b', row).textContent;
+    const meta = $('div:nth-child(2) small', row).textContent;
+    const price = $('.bill-price b', row).textContent;
+    return `<div class="home-bill-row"><span class="bill-icon">${icon}</span><div><b>${title}</b><small>${meta}</small></div><strong>${price}</strong><button class="soft-btn" data-home-pay-index="${index}">结清</button></div>`;
+  }).join('') || '<p class="empty-message">账单都结清啦，轻轻松松。</p>';
+  const remainingAmounts = [86.5, 15, 0];
+  $('#homeDueAmount').textContent = `¥${remainingAmounts[Math.min(appState.paid, 2)].toFixed(2)}`;
+}
+
+function renderHomeRule() {
+  const agreed = appState.ruleAgreed;
+  const homeStatus = $('#homeRuleStatus');
+  const pageStatus = $('#rulePageStatus');
+  [homeStatus, pageStatus].filter(Boolean).forEach(status => {
+    status.textContent = agreed ? '已共同确认' : '等待你的确认';
+    status.className = `tag ${agreed ? 'sage' : 'coral'}`;
+  });
+  const homeMe = $('.home-rule-me');
+  if (homeMe) {
+    homeMe.textContent = agreed ? appState.name[0] : '你';
+    homeMe.className = `avatar home-rule-me${agreed ? ' avatar-linxia' : ''}`;
+    homeMe.style.background = agreed ? appState.color : '#f0eee6';
+  }
+  const pageMe = $('#quietRule .signatures .empty, #quietRule .signatures .avatar-linxia:last-of-type');
+  if (pageMe && agreed) {
+    pageMe.className = 'avatar avatar-linxia';
+    pageMe.textContent = appState.name[0];
+    pageMe.style.background = appState.color;
+  }
+  const signatureText = $('#quietRule .signatures small');
+  if (signatureText) signatureText.textContent = agreed ? '4 / 4 位 Roomie 已确认' : '3 / 4 位 Roomie 已确认';
+  [['#agreeRule', '✓ 已成为我们的小屋约定'], ['#homeAgreeRule', '✓ 已确认']].forEach(([selector, doneText]) => {
+    const button = $(selector);
+    if (!button) return;
+    button.textContent = agreed ? doneText : '我也同意';
+    button.disabled = agreed;
+  });
+  syncProfile();
 }
 
 function renderTasks() {
@@ -135,6 +179,7 @@ function rewardRoomieAction(actionId, type, label) {
   if (!accepted) return false;
   appState.rewardedActionIds.push(actionId);
   persist();
+  if (!$('#charityPage').classList.contains('active')) toast(`${label}已完成，暖心进度已经记下。`, 0, '小屋事务已更新');
   return true;
 }
 
@@ -185,7 +230,21 @@ $$('[data-page]').forEach(button => button.addEventListener('click', () => showP
 $$('[data-close]').forEach(button => button.addEventListener('click', () => closeModal(button.dataset.close)));
 $$('.modal-backdrop').forEach(backdrop => backdrop.addEventListener('click', event => { if (event.target === backdrop) closeModal(backdrop.id); }));
 document.addEventListener('keydown', event => { if (event.key === 'Escape') $$('.modal-backdrop.open').forEach(item => closeModal(item.id)); });
-$('#openAvatar').addEventListener('click', () => openModal('avatarModal'));
+function closeProfileMenu() {
+  $('#profileMenu').classList.remove('open');
+  $('#openProfileMenu').setAttribute('aria-expanded', 'false');
+}
+
+$('#openProfileMenu').addEventListener('click', event => {
+  event.stopPropagation();
+  const isOpen = $('#profileMenu').classList.toggle('open');
+  $('#openProfileMenu').setAttribute('aria-expanded', String(isOpen));
+});
+$('#profileMenu').addEventListener('click', event => event.stopPropagation());
+document.addEventListener('click', closeProfileMenu);
+$('#editAvatarAction').addEventListener('click', () => { closeProfileMenu(); openModal('avatarModal'); });
+$('#houseJoinAction').addEventListener('click', () => { closeProfileMenu(); openHouseModal('create'); });
+$('#houseSettingsAction').addEventListener('click', () => { closeProfileMenu(); openHouseModal('create', true); });
 $('#addBillBtn').addEventListener('click', () => openModal('billModal'));
 $('#openTaskModal').addEventListener('click', () => openModal('taskModal'));
 $$('.task-tab').forEach(tab => tab.addEventListener('click', () => {
@@ -204,6 +263,45 @@ $$('.color-options button').forEach(button => button.addEventListener('click', (
   appState.color = button.dataset.color;
   $('.big-avatar').style.background = `linear-gradient(180deg,${appState.color}55,#f8e0b6)`;
 }));
+
+function setHouseMode(mode) {
+  $$('[data-house-mode]').forEach(button => button.classList.toggle('active', button.dataset.houseMode === mode));
+  $$('[data-house-panel]').forEach(panel => panel.classList.toggle('active', panel.dataset.housePanel === mode));
+  $('#houseInviteResult').hidden = true;
+}
+
+function openHouseModal(mode = 'create', settings = false) {
+  setHouseMode(mode);
+  $('#houseModalTitle').textContent = settings ? '当前小屋设置' : '创建或加入小屋';
+  $('#createHouseForm').elements.houseName.value = appState.house.name;
+  openModal('houseModal');
+}
+
+$$('[data-house-mode]').forEach(button => button.addEventListener('click', () => setHouseMode(button.dataset.houseMode)));
+$('#createHouseForm').addEventListener('submit', event => {
+  event.preventDefault();
+  const name = new FormData(event.currentTarget).get('houseName').trim();
+  if (!name) return;
+  appState.house.name = name;
+  appState.house.inviteCode = `RM${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+  appState.house.joinedCode = null;
+  $('#houseInviteCode').textContent = appState.house.inviteCode;
+  $('#houseInviteResult').hidden = false;
+  syncProfile();
+  persist();
+  toast(`${name} 已准备好，邀请室友一起来吧。`, 0, '小屋创建成功');
+});
+$('#joinHouseForm').addEventListener('submit', event => {
+  event.preventDefault();
+  const code = new FormData(event.currentTarget).get('inviteCode').trim().toUpperCase();
+  if (!code) return;
+  appState.house.joinedCode = code;
+  appState.house.name = code === 'ROOMIE88' ? '晚风公寓' : 'Roomie 的新小屋';
+  syncProfile();
+  persist();
+  closeModal('houseModal');
+  toast(`已加入${appState.house.name}，一起把日子过好。`, 0, '欢迎回家');
+});
 $('#saveAvatar').addEventListener('click', () => {
   const previous = appState.name;
   appState.name = $('#nameInput').value.trim() || '林夏';
@@ -214,6 +312,7 @@ $('#saveAvatar').addEventListener('click', () => {
   syncProfile();
   closeModal('avatarModal');
   renderTasks();
+  renderHomeRule();
   toast('新形象已经住进小屋啦');
   persist();
 });
@@ -237,6 +336,8 @@ $('#taskForm').addEventListener('submit', event => {
       ? `${form.get('taskCycle')} · ${mode === 'rotate' ? '成员轮班' : mode === 'claim' ? '公开认领' : '指定任务'}`
       : `一次性 · ${mode === 'claim' ? '公开认领' : '指定任务'}`,
     points: Number(form.get('taskPoints')),
+    priority: form.get('taskPriority'),
+    estimateMinutes: Number(form.get('taskEstimate')),
     status: mode === 'claim' ? 'claim' : 'doing',
     active: true
   });
@@ -261,10 +362,10 @@ updateTaskForm();
 document.addEventListener('click', event => {
   const action = event.target.closest('[data-task-action]');
   if (action) manageTask(action.dataset.taskAction, action.dataset.id);
-  if (event.target.closest('#sceneChoreBtn')) {
-    const btn = $('#sceneChoreBtn');
-    if (btn.dataset.jump === 'complete' && btn.dataset.id) completeTask(btn.dataset.id);
-    else showPage('chores');
+  const homePay = event.target.closest('[data-home-pay-index]');
+  if (homePay) {
+    const target = $$('.pay-btn')[Number(homePay.dataset.homePayIndex)];
+    if (target && !target.disabled) target.click();
   }
   if (event.target.closest('#supplyBillBtn')) { showPage('bills'); openModal('billModal'); }
 });
@@ -290,23 +391,20 @@ $$('.pay-btn').forEach((button, index) => button.addEventListener('click', () =>
   const amounts = [86.5, 15, 0];
   $('#dueAmount').textContent = `¥${amounts[appState.paid].toFixed(2)}`;
   renderHomeTasks();
+  renderHomeBills();
   persist();
   rewardRoomieAction(`bill:${index}`, 'bill', button.closest('.bill-row').querySelector('b').textContent);
 }));
-$('#agreeRule').addEventListener('click', () => {
+function agreeToRule() {
   if (appState.ruleAgreed) return;
   appState.ruleAgreed = true;
-  const empty = $('#quietRule .empty');
-  empty.className = 'avatar avatar-linxia';
-  empty.textContent = appState.name[0];
-  empty.style.background = appState.color;
-  $('#quietRule .signatures small').textContent = '4 / 4 位 Roomie 已确认';
-  $('#agreeRule').textContent = '✓ 已成为我们的小屋约定';
-  $('#agreeRule').disabled = true;
   renderHomeTasks();
+  renderHomeRule();
   persist();
   rewardRoomieAction('rule:quiet-hours', 'rule', '确认安静时间公约');
-});
+}
+$('#agreeRule').addEventListener('click', agreeToRule);
+$('#homeAgreeRule').addEventListener('click', agreeToRule);
 $('#billForm').addEventListener('submit', event => {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
@@ -318,17 +416,22 @@ $('#billForm').addEventListener('submit', event => {
 
 function syncProfile() {
   $('#greetingText').textContent = `下午好，${appState.name}`;
-  $('#openAvatar b').textContent = appState.name;
+  $('#openProfileMenu b').textContent = appState.name;
+  $('#profileMenuName').textContent = appState.name;
   $('#nameInput').value = appState.name;
   $('#avatarPreview').className = `avatar-sprite avatar-sprite-${appState.avatar}`;
   $$('.avatar-choice').forEach(item => item.classList.toggle('selected', Number(item.dataset.avatar) === appState.avatar));
   $('.big-avatar').style.background = `linear-gradient(180deg,${appState.color}55,#f8e0b6)`;
+  const avatarPositions = ['0% 0%', '33.333% 0%', '66.666% 0%', '100% 0%', '0% 100%', '33.333% 100%', '66.666% 100%', '100% 100%'];
   $$('.avatar-linxia').forEach(item => {
-    item.textContent = appState.name[0];
-    item.style.background = appState.color;
+    item.textContent = '';
+    item.setAttribute('aria-label', appState.name);
+    item.style.backgroundColor = appState.color;
+    item.style.backgroundImage = "url('./assets/roomie-avatar-sprites.png')";
+    item.style.backgroundSize = '400% 200%';
+    item.style.backgroundPosition = avatarPositions[appState.avatar - 1] || avatarPositions[1];
   });
-  const levelEl = $('#openAvatar small');
-  if (levelEl) levelEl.textContent = `暖心 ¥${(appState.charity.houseDonationCents / 100).toFixed(0)}`;
+  $$('[data-house-name]').forEach(item => { item.textContent = appState.house.name; });
 }
 
 function restore() {
@@ -362,17 +465,6 @@ function restore() {
     $('#trashSupply small').textContent = '已经补充好啦';
     $('#trashSupply button').outerHTML = '<button class="soft-btn" id="supplyBillBtn">记一笔 AA 账单</button>';
   }
-  if (appState.ruleAgreed) {
-    const empty = $('#quietRule .empty');
-    if (empty) {
-      empty.className = 'avatar avatar-linxia';
-      empty.textContent = appState.name[0];
-      empty.style.background = appState.color;
-    }
-    $('#quietRule .signatures small').textContent = '4 / 4 位 Roomie 已确认';
-    $('#agreeRule').textContent = '✓ 已成为我们的小屋约定';
-    $('#agreeRule').disabled = true;
-  }
   $$('.pay-btn').forEach((button, index) => {
     if (index >= appState.paid) return;
     button.closest('.bill-row').classList.add('paid');
@@ -380,6 +472,8 @@ function restore() {
     button.disabled = true;
   });
   renderTasks();
+  renderHomeBills();
+  renderHomeRule();
 }
 
 restore();

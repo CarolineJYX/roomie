@@ -10,9 +10,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=rumi-1" />
-  <link rel="stylesheet" href="./overrides.css?v=rumi-1" />
-  <link rel="stylesheet" href="./alpaca-game.css?v=rumi-1" />
+  <link rel="stylesheet" href="./styles.css?v=dashboard-4" />
+  <link rel="stylesheet" href="./overrides.css?v=dashboard-4" />
+  <link rel="stylesheet" href="./alpaca-game.css?v=dashboard-4" />
 </head>
 <body>
   <div class="app-shell">
@@ -23,7 +23,7 @@
       </button>
 
       <nav class="nav-list">
-        <button class="nav-item active" data-page="home"><span>⌂</span><b>小屋</b></button>
+        <button class="nav-item active" data-page="home"><span>⌂</span><b>首页</b></button>
         <button class="nav-item" data-page="bills"><span>¥</span><b>AA 账单</b><em>2</em></button>
         <button class="nav-item" data-page="chores"><span>✓</span><b>小屋任务</b><em id="taskNavCount">2</em></button>
         <button class="nav-item" data-page="supplies"><span>□</span><b>公共物品</b><em>2</em></button>
@@ -32,7 +32,7 @@
 
       <div class="house-card">
         <div class="house-mini-icon">🏠</div>
-        <div><b>晚风公寓</b><small id="houseStageLabel">共建中 · 起步</small></div>
+        <div><b data-house-name>晚风公寓</b><small>4 位 Roomie</small></div>
         <button aria-label="更多选项">•••</button>
       </div>
     </aside>
@@ -42,22 +42,42 @@
         <div class="mobile-brand">Roomie</div>
         <div class="greeting"><span id="greetingText">下午好，林夏</span><small>今天也一起照顾好小屋吧</small></div>
         <div class="top-actions">
-          <button class="icon-btn notification" aria-label="查看通知">♢<span></span></button>
-          <button class="profile-pill" id="openAvatar"><span class="avatar avatar-linxia">夏</span><b>林夏</b><small>Lv. 3</small></button>
+          <button class="pet-entry" data-page="charity" aria-label="进入小屋公益，暖心毛线 4/5">
+            <img src="./assets/rumi-avatar.png" alt="" />
+            <span class="pet-entry-copy"><span class="pet-entry-title"><b>小屋公益</b><em>新上线！</em></span><small id="petYarnText">暖心毛线 4/5</small><i class="pet-progress" aria-hidden="true"><em id="petProgressFill" style="width:80%"></em></i></span>
+          </button>
+          <button class="profile-pill" id="openProfileMenu" aria-haspopup="menu" aria-expanded="false"><span class="avatar avatar-linxia">夏</span><b>林夏</b><small data-house-name>晚风公寓</small></button>
+          <div class="profile-menu" id="profileMenu" role="menu">
+            <div class="profile-menu-head"><span class="avatar avatar-linxia">夏</span><div><b id="profileMenuName">林夏</b><small data-house-name>晚风公寓</small></div></div>
+            <button type="button" role="menuitem" id="editAvatarAction"><span>☺</span><div><b>编辑我的形象</b><small>换一个喜欢的 Roomie 头像</small></div><i>›</i></button>
+            <button type="button" role="menuitem" id="houseJoinAction"><span>＋</span><div><b>创建 / 加入小屋</b><small>邀请室友一起管理生活</small></div><i>›</i></button>
+            <button type="button" role="menuitem" id="houseSettingsAction"><span>⌂</span><div><b>当前小屋设置</b><small data-house-name>晚风公寓</small></div><i>›</i></button>
+          </div>
         </div>
       </header>
 
       <section class="page active" id="homePage">
-        <div class="home-grid">
-          <article class="room-scene" id="roomScene" data-stage="0">
-            <div id="alpacaGameMount" class="alpaca-game-mount" aria-label="绒米公益养成"></div>
-            <div class="scene-status scene-status-cta"><button id="sceneChoreBtn">去完成任务 →</button></div>
+        <div class="home-dashboard">
+          <article class="home-house-card">
+            <div class="home-house-copy"><span class="eyebrow">OUR HOME</span><div class="home-house-title"><h1 data-house-name>晚风公寓</h1><div class="home-members"><div class="member-stack"><span class="avatar avatar-linxia">夏</span><span class="avatar avatar-chen">陈</span><span class="avatar avatar-yu">宇</span><span class="avatar avatar-nina">N</span></div><span>4 位 Roomie</span></div></div></div>
           </article>
 
-          <aside class="today-panel">
-            <div class="section-title"><div><span class="eyebrow">TODAY</span><h2>今天的小事</h2></div><span class="task-count" id="taskCount">0 件</span></div>
+          <section class="dashboard-card home-task-card">
+            <div class="dashboard-heading"><div><span class="eyebrow">HOUSE TASKS</span><h2>近期任务</h2></div><button class="text-btn" data-page="chores">查看全部 →</button></div>
             <div class="task-list" id="homeTasks"></div>
-          </aside>
+          </section>
+
+          <section class="dashboard-card home-bill-card">
+            <div class="dashboard-heading"><div><span class="eyebrow">TO PAY</span><h2>待支付账单</h2></div><div class="home-due"><span>我的待结清</span><strong id="homeDueAmount">¥86.50</strong></div></div>
+            <div class="home-bill-list" id="homeBills"></div>
+            <button class="text-btn dashboard-link" data-page="bills">查看全部账单 →</button>
+          </section>
+
+          <section class="dashboard-card home-rules-card" id="homeRulesSummary">
+            <div class="dashboard-heading"><div><span class="eyebrow">OUR AGREEMENT</span><h2>小屋公约</h2></div><div class="dashboard-heading-actions"><span class="tag coral" id="homeRuleStatus">等待你的确认</span><button class="text-btn" data-page="rules">查看全部 →</button></div></div>
+            <div class="home-rule-main"><span class="home-rule-icon">🌙</span><div><h3>晚上 23:00 后，进入小屋安静时间</h3><p>看视频、听音乐时戴上耳机；如果有朋友来，提前在群里和大家说一声。</p></div><div class="home-rule-signatures"><span class="avatar avatar-chen">陈</span><span class="avatar avatar-yu">宇</span><span class="avatar avatar-nina">N</span><span class="avatar home-rule-me">你</span></div><button class="primary-btn" id="homeAgreeRule">我也同意</button></div>
+            <div class="home-rule-list"><span>✓ 写了名字的食物不随意取用</span><span>✓ 鞋子放进鞋柜，玄关保持通畅</span></div>
+          </section>
         </div>
       </section>
 
@@ -106,18 +126,21 @@
       <section class="page" id="rulesPage">
         <div class="page-heading"><div><span class="eyebrow">OUR AGREEMENTS</span><h1>小屋公约</h1><p>不是冷冰冰的规定，是我们一起选择的生活方式。</p></div><button class="primary-btn">＋ 发起新约定</button></div>
         <div class="rules-layout">
-          <article class="rule-feature card" id="quietRule"><div class="rule-tape"></div><span class="tag coral">等待你的确认</span><div class="rule-illustration">🌙</div><h2>晚上 23:00 后，进入小屋安静时间</h2><p>看视频、听音乐时戴上耳机；如果有朋友来，提前在群里和大家说一声。</p><div class="signatures"><span class="avatar avatar-chen">陈</span><span class="avatar avatar-yu">宇</span><span class="avatar avatar-nina">N</span><span class="avatar empty">你</span><small>3 / 4 位 Roomie 已确认</small></div><button class="primary-btn" id="agreeRule">我也同意</button></article>
-          <div class="rule-list">
-            <article class="card mini-rule"><span>🧊</span><div><small>冰箱与食物</small><h3>写了名字的食物不随意取用</h3><p>全员已确认 · 9月1日生效</p></div><b>✓</b></article>
-            <article class="card mini-rule"><span>👟</span><div><small>公共区域</small><h3>鞋子放进鞋柜，玄关保持通畅</h3><p>全员已确认 · 8月28日生效</p></div><b>✓</b></article>
-            <article class="card mini-rule"><span>🐈</span><div><small>毛孩子</small><h3>喂过团子后，在群里发个表情</h3><p>全员已确认 · 8月20日生效</p></div><b>✓</b></article>
-          </div>
+          <article class="rule-feature card" id="quietRule"><div class="rule-tape"></div><span class="tag coral" id="rulePageStatus">等待你的确认</span><div class="rule-illustration">🌙</div><h2>晚上 23:00 后，进入小屋安静时间</h2><p>看视频、听音乐时戴上耳机；如果有朋友来，提前在群里和大家说一声。</p><div class="signatures"><span class="avatar avatar-chen">陈</span><span class="avatar avatar-yu">宇</span><span class="avatar avatar-nina">N</span><span class="avatar empty">你</span><small>3 / 4 位 Roomie 已确认</small></div><button class="primary-btn" id="agreeRule">我也同意</button></article>
+          <div class="rule-list"><article class="card mini-rule"><span>🧊</span><div><small>冰箱与食物</small><h3>写了名字的食物不随意取用</h3><p>全员已确认 · 9月1日生效</p></div><b>✓</b></article><article class="card mini-rule"><span>👟</span><div><small>公共区域</small><h3>鞋子放进鞋柜，玄关保持通畅</h3><p>全员已确认 · 8月28日生效</p></div><b>✓</b></article><article class="card mini-rule"><span>🐈</span><div><small>毛孩子</small><h3>喂过团子后，在群里发个表情</h3><p>全员已确认 · 8月20日生效</p></div><b>✓</b></article></div>
         </div>
+      </section>
+
+      <section class="page" id="charityPage">
+        <div class="page-heading charity-heading"><div><button class="charity-back" data-page="home">← 返回首页</button><span class="eyebrow">ROOMIE CHARITY</span><h1>小屋公益</h1><p>完成合租事务积累暖心进度，把一起完成的小事变成一份善意。</p></div><span class="charity-demo-tag">概念体验</span></div>
+        <article class="room-scene charity-scene" id="roomScene">
+          <div id="alpacaGameMount" class="alpaca-game-mount" aria-label="绒米公益养成"></div>
+        </article>
       </section>
     </main>
 
     <nav class="mobile-nav" aria-label="移动端导航">
-      <button class="active" data-page="home"><span>⌂</span>小屋</button><button data-page="bills"><span>¥</span>账单</button><button data-page="chores"><span>✓</span>任务</button><button data-page="supplies"><span>□</span>物品</button><button data-page="rules"><span>♡</span>公约</button>
+      <button class="active" data-page="home"><span>⌂</span>首页</button><button data-page="bills"><span>¥</span>账单</button><button data-page="chores"><span>✓</span>任务</button><button data-page="supplies"><span>□</span>物品</button><button data-page="rules"><span>♡</span>公约</button>
     </nav>
   </div>
 
@@ -134,6 +157,23 @@
         </div>
       </div>
       <button class="primary-btn full" id="saveAvatar">保存我的形象</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="houseModal" role="dialog" aria-modal="true" aria-labelledby="houseModalTitle">
+    <div class="modal house-modal">
+      <button type="button" class="close-btn" data-close="houseModal" aria-label="关闭">×</button>
+      <span class="eyebrow">YOUR SHARED HOME</span><h2 id="houseModalTitle">创建或加入小屋</h2><p>这是本地概念体验，不会向室友发送真实邀请。</p>
+      <div class="house-mode-tabs" role="tablist"><button type="button" class="active" data-house-mode="create" role="tab">创建小屋</button><button type="button" data-house-mode="join" role="tab">加入小屋</button></div>
+      <form class="house-mode-panel active" id="createHouseForm" data-house-panel="create">
+        <label>小屋名称<input name="houseName" maxlength="16" placeholder="例如：晚风公寓" required /></label>
+        <button class="primary-btn full">创建并生成邀请码</button>
+      </form>
+      <form class="house-mode-panel" id="joinHouseForm" data-house-panel="join">
+        <label>室友邀请码<input name="inviteCode" maxlength="12" placeholder="例如：ROOMIE88" required /></label>
+        <button class="primary-btn full">加入这间小屋</button>
+      </form>
+      <div class="house-invite-result" id="houseInviteResult" hidden><small>小屋邀请码</small><strong id="houseInviteCode">ROOMIE88</strong><p>把邀请码发给室友，就能一起加入啦。</p></div>
     </div>
   </div>
 
@@ -155,6 +195,7 @@
       <label>这件事是什么？<input name="taskTitle" placeholder="例如：周末一起整理冰箱" required /></label>
       <label>补充说明 <input name="taskDescription" placeholder="写下需要大家知道的细节（可选）" /></label>
       <div class="form-grid"><label>任务种类<select name="taskKind"><option value="temporary">临时任务</option><option value="recurring">长期任务</option></select></label><label>截止时间<select name="taskDue"><option>本周日</option><option>今天</option><option>明天</option><option>下周</option></select></label></div>
+      <div class="form-grid"><label>优先级<select name="taskPriority"><option value="normal">普通</option><option value="high">高优先</option><option value="low">可稍后</option></select></label><label>预计耗时<select name="taskEstimate"><option value="5">5 分钟</option><option value="10">10 分钟</option><option value="15" selected>15 分钟</option><option value="30">30 分钟</option><option value="45">45 分钟</option><option value="60">60 分钟</option></select></label></div>
       <div class="form-grid"><label>执行方式<select name="taskMode"><option value="claim">公开认领</option><option value="assign">指定室友</option><option value="rotate">成员轮班</option></select></label><label>暖心反馈<select name="taskPoints"><option value="5">完成后可为绒米梳毛</option></select></label></div>
       <label id="assigneeField">指定给谁<select name="taskAssignee"><option>林夏</option><option>陈默</option><option>小宇</option><option>Nina</option></select></label>
       <label id="cycleField" class="hidden-field">重复周期<select name="taskCycle"><option>每周</option><option>每两周</option><option>每月</option></select></label>
@@ -163,7 +204,7 @@
   </div>
 
   <div class="celebration" id="celebration" role="status" aria-live="polite"><span>✨</span><div><b id="celebrationTitle">小屋有新动静</b><small id="celebrationText">谢谢你照顾我们的家</small></div></div>
-  <script src="./alpaca-game.js?v=rumi-1"></script>
-  <script src="./app.js?v=rumi-1"></script>
+  <script src="./alpaca-game.js?v=dashboard-4"></script>
+  <script src="./app.js?v=dashboard-4"></script>
 </body>
 </html>
