@@ -12,6 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./overrides.css" />
+  <link rel="stylesheet" href="./alpaca-game.css" />
 </head>
 <body>
   <div class="app-shell">
@@ -49,20 +50,7 @@
       <section class="page active" id="homePage">
         <div class="home-grid">
           <article class="room-scene" id="roomScene" data-stage="0">
-            <div class="house-decor" id="houseDecor" aria-hidden="true">
-              <span class="decor-item" data-unlock="plant">🪴</span>
-              <span class="decor-item" data-unlock="lamp">💡</span>
-              <span class="decor-item" data-unlock="sofa">🛋</span>
-              <span class="decor-item" data-unlock="kitchen">🫧</span>
-              <span class="decor-item" data-unlock="frame">🖼</span>
-            </div>
-            <div class="scene-overlay">
-              <div class="harmony-card">
-                <div class="harmony-head"><span>小屋建设度</span><b id="buildValue">0</b></div>
-                <div class="progress"><i id="buildBar" style="width:0%"></i></div>
-                <small id="buildHint">再攒一点建设值，就能解锁窗边绿植</small>
-              </div>
-            </div>
+            <div id="alpacaGameMount" class="alpaca-game-mount" aria-label="绒米公益养成"></div>
             <div class="scene-status scene-status-cta"><button id="sceneChoreBtn">去完成任务 →</button></div>
           </article>
 
@@ -89,13 +77,8 @@
       </section>
 
       <section class="page" id="choresPage">
-        <div class="page-heading"><div><span class="eyebrow">OUR HOUSE TASKS</span><h1>小屋任务</h1><p>完成任务推进共建：建设值上涨，家具一点点点亮。</p></div><button class="primary-btn" id="openTaskModal">＋ 发起任务</button></div>
-        <section class="card unlock-card chores-build">
-          <div class="section-title compact"><div><span class="eyebrow">HOUSE BUILD</span><h2>共建清单</h2></div></div>
-          <div class="unlock-grid" id="unlockGrid"></div>
-          <button class="soft-btn full roommate-help" id="roommateHelpBtn">让一位室友也完成手头任务</button>
-        </section>
-        <div class="task-tabs" role="tablist"><button class="task-tab active" data-task-view="schedule" role="tab">这周安排 <span id="scheduleCount">3</span></button><button class="task-tab" data-task-view="claim" role="tab">待认领 <span id="claimCount">2</span></button><div class="task-tab-note">完成后计入共建 · 建设值上涨</div></div>
+        <div class="page-heading"><div><span class="eyebrow">OUR HOUSE TASKS</span><h1>小屋任务</h1><p>完成生活里的小事，为绒米积攒暖心毛线。</p></div><button class="primary-btn" id="openTaskModal">＋ 发起任务</button></div>
+        <div class="task-tabs" role="tablist"><button class="task-tab active" data-task-view="schedule" role="tab">这周安排 <span id="scheduleCount">3</span></button><button class="task-tab" data-task-view="claim" role="tab">待认领 <span id="claimCount">2</span></button><div class="task-tab-note">每两件小事 · 梳出一团暖心毛线</div></div>
         <div class="task-view active" id="scheduleView">
           <div class="week-strip">
             <button><small>周一</small><b>8</b><span>✓</span></button><button><small>周二</small><b>9</b><span>✓</span></button><button><small>周三</small><b>10</b><span>✓</span></button><button><small>周四</small><b>11</b><span>✓</span></button><button class="today"><small>今天</small><b>12</b><span>2</span></button><button><small>周六</small><b>13</b><span>1</span></button><button><small>周日</small><b>14</b><span>1</span></button>
@@ -172,14 +155,15 @@
       <label>这件事是什么？<input name="taskTitle" placeholder="例如：周末一起整理冰箱" required /></label>
       <label>补充说明 <input name="taskDescription" placeholder="写下需要大家知道的细节（可选）" /></label>
       <div class="form-grid"><label>任务种类<select name="taskKind"><option value="temporary">临时任务</option><option value="recurring">长期任务</option></select></label><label>截止时间<select name="taskDue"><option>本周日</option><option>今天</option><option>明天</option><option>下周</option></select></label></div>
-      <div class="form-grid"><label>执行方式<select name="taskMode"><option value="claim">公开认领</option><option value="assign">指定室友</option><option value="rotate">成员轮班</option></select></label><label>建设值<select name="taskPoints"><option value="5">+5</option><option value="10">+10</option><option value="15">+15</option></select></label></div>
+      <div class="form-grid"><label>执行方式<select name="taskMode"><option value="claim">公开认领</option><option value="assign">指定室友</option><option value="rotate">成员轮班</option></select></label><label>暖心反馈<select name="taskPoints"><option value="5">完成后可为绒米梳毛</option></select></label></div>
       <label id="assigneeField">指定给谁<select name="taskAssignee"><option>林夏</option><option>陈默</option><option>小宇</option><option>Nina</option></select></label>
       <label id="cycleField" class="hidden-field">重复周期<select name="taskCycle"><option>每周</option><option>每两周</option><option>每月</option></select></label>
       <button class="primary-btn full">发起这件小事</button>
     </form>
   </div>
 
-  <div class="celebration" id="celebration" role="status" aria-live="polite"><span>✨</span><div><b id="celebrationTitle">建设值 +10</b><small id="celebrationText">谢谢你照顾我们的家</small></div></div>
+  <div class="celebration" id="celebration" role="status" aria-live="polite"><span>✨</span><div><b id="celebrationTitle">小屋有新动静</b><small id="celebrationText">谢谢你照顾我们的家</small></div></div>
+  <script src="./alpaca-game.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
