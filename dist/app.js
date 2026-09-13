@@ -104,7 +104,10 @@ function renderHomeTasks() {
   const claimable = appState.tasks.filter(task => task.status === 'claim' && task.active).sort((a, b) => priorityRank(a.priority) - priorityRank(b.priority));
   const rows = mine.map(task => `<button class="task-row" data-task-action="complete" data-id="${task.id}"><span class="task-icon mint">${task.icon}</span><span><b>${task.title}</b><small><em class="priority-text ${task.priority}">${priorityLabel(task.priority)}</em> · 预计 ${task.estimateMinutes} 分钟 · ${task.due}</small></span><i>完成</i></button>`)
     .concat(claimable.map(task => `<button class="task-row" data-task-action="claim" data-id="${task.id}"><span class="task-icon yellow">${task.icon}</span><span><b>${task.title}</b><small><em class="priority-text ${task.priority}">${priorityLabel(task.priority)}</em> · 预计 ${task.estimateMinutes} 分钟 · ${task.proponent} 提议</small></span><i>我来做</i></button>`));
-  $('#homeTasks').innerHTML = rows.slice(0, 5).join('') || '<p class="empty-message">近期任务都安顿好啦。</p>';
+  const homeTaskList = $('#homeTasks');
+  const isEmpty = rows.length === 0;
+  homeTaskList.innerHTML = rows.slice(0, 5).join('') || '<p class="compact-empty">任务都完成啦，轻轻松松。</p>';
+  homeTaskList.closest('.home-task-card').classList.toggle('is-empty', isEmpty);
   const actionable = appState.tasks.filter(task => (isMine(task) && task.status === 'doing' && task.active) || (task.status === 'claim' && task.active)).length;
   const taskCount = $('#taskCount');
   if (taskCount) taskCount.textContent = `${actionable} 件`;
@@ -118,13 +121,15 @@ function renderHomeBills() {
     .map((button, index) => ({ button, index, row: button.closest('.bill-row') }))
     .filter(item => !item.row.classList.contains('paid'))
     .slice(0, 2);
+  const isEmpty = unpaid.length === 0;
   list.innerHTML = unpaid.map(({ index, row }) => {
     const icon = $('.bill-icon', row).textContent;
     const title = $('div:nth-child(2) b', row).textContent;
     const meta = $('div:nth-child(2) small', row).textContent;
     const price = $('.bill-price b', row).textContent;
     return `<div class="home-bill-row"><span class="bill-icon">${icon}</span><div><b>${title}</b><small>${meta}</small></div><strong>${price}</strong><button class="soft-btn" data-home-pay-index="${index}">结清</button></div>`;
-  }).join('') || '<p class="empty-message">账单都结清啦，轻轻松松。</p>';
+  }).join('') || '<p class="compact-empty">账单都结清啦，轻轻松松。</p>';
+  list.closest('.home-bill-card').classList.toggle('is-empty', isEmpty);
   const remainingAmounts = [86.5, 15, 0];
   $('#homeDueAmount').textContent = `¥${remainingAmounts[Math.min(appState.paid, 2)].toFixed(2)}`;
 }
@@ -151,6 +156,12 @@ function renderHomeRule() {
   }
   const signatureText = $('#quietRule .signatures small');
   if (signatureText) signatureText.textContent = agreed ? '4 / 4 位 Roomie 已确认' : '3 / 4 位 Roomie 已确认';
+  $('#quietRule').hidden = agreed;
+  $('.confirmed-quiet-rule').hidden = !agreed;
+  $('.home-rule-main').hidden = agreed;
+  $('.home-confirmed-quiet').hidden = !agreed;
+  $('#rulesPage .rules-layout').classList.toggle('all-confirmed', agreed);
+  if (homeStatus && agreed) homeStatus.textContent = '3 条已生效';
   [['#agreeRule', '✓ 已成为我们的小屋约定'], ['#homeAgreeRule', '✓ 已确认']].forEach(([selector, doneText]) => {
     const button = $(selector);
     if (!button) return;
@@ -163,8 +174,10 @@ function renderHomeRule() {
 function renderTasks() {
   const schedule = appState.tasks.filter(task => task.assignee || task.status === 'done');
   const claims = appState.tasks.filter(task => task.status === 'claim' && task.active);
-  $('#scheduleTasks').innerHTML = schedule.map(taskCard).join('') || '<p class="empty-message">这周的小屋很轻松，暂时没有安排。</p>';
-  $('#claimTasks').innerHTML = claims.map(claimCard).join('') || '<p class="empty-message">所有小事都被好好接住啦。</p>';
+  $('#scheduleTasks').innerHTML = schedule.map(taskCard).join('') || '<p class="compact-empty">✓ 这周的小屋很轻松，暂时没有新的安排。</p>';
+  $('#claimTasks').innerHTML = claims.map(claimCard).join('') || '<p class="compact-empty">✓ 所有小事都被接住啦，谢谢每一位 Roomie。</p>';
+  $('#scheduleTasks').classList.toggle('is-empty', schedule.length === 0);
+  $('#claimTasks').classList.toggle('is-empty', claims.length === 0);
   $('#scheduleCount').textContent = schedule.filter(task => task.status !== 'done').length;
   $('#claimCount').textContent = claims.length;
   $('#taskNavCount').textContent = claims.length;
@@ -179,7 +192,7 @@ function rewardRoomieAction(actionId, type, label) {
   if (!accepted) return false;
   appState.rewardedActionIds.push(actionId);
   persist();
-  if (!$('#charityPage').classList.contains('active')) toast(`${label}已完成，暖心进度已经记下。`, 0, '小屋事务已更新');
+  if (!$('#charityExperienceModal').classList.contains('open')) toast(`${label}已完成，暖心进度已经记下。`, 0, '小屋事务已更新');
   return true;
 }
 
@@ -245,6 +258,7 @@ document.addEventListener('click', closeProfileMenu);
 $('#editAvatarAction').addEventListener('click', () => { closeProfileMenu(); openModal('avatarModal'); });
 $('#houseJoinAction').addEventListener('click', () => { closeProfileMenu(); openHouseModal('create'); });
 $('#houseSettingsAction').addEventListener('click', () => { closeProfileMenu(); openHouseModal('create', true); });
+$('#openCharityExperience').addEventListener('click', () => openModal('charityExperienceModal'));
 $('#addBillBtn').addEventListener('click', () => openModal('billModal'));
 $('#openTaskModal').addEventListener('click', () => openModal('taskModal'));
 $$('.task-tab').forEach(tab => tab.addEventListener('click', () => {

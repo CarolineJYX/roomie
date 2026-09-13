@@ -519,3 +519,48 @@ body { font-size: var(--type-body); line-height: 1.55; }
   :root { --type-page: 1.625rem; }
   .profile-menu { position: fixed; top: 66px; right: 12px; width: min(286px,calc(100vw - 24px)); }
 }
+
+/* Agreement archive state */
+[hidden] { display: none !important; }
+.rules-layout.all-confirmed { grid-template-columns: 1fr; }
+.rules-layout.all-confirmed .rule-list { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.confirmed-quiet-rule { background: linear-gradient(135deg,#fffdf5,#f2f8f3); }
+.mini-rule-signatures { display: flex; margin-top: 9px; }
+.mini-rule-signatures .avatar { width: 27px; height: 27px; margin-left: -6px; }
+.mini-rule-signatures .avatar:first-child { margin-left: 0; }
+
+/* Distinct roommate portraits from the shared sprite sheet */
+.avatar-chen,.avatar-yu,.avatar-nina {
+  background-image: url('./assets/roomie-avatar-sprites.png');
+  background-repeat: no-repeat;
+  background-size: 400% 200%;
+}
+.avatar-chen { background-position: 66.666% 0%; }
+.avatar-yu { background-position: 0% 100%; }
+.avatar-nina { background-position: 66.666% 100%; }
+
+/* Compact completed-task state */
+.home-task-card.is-empty,.home-bill-card.is-empty { min-height: 0; padding-bottom: 18px; }
+.home-bill-card.is-empty .dashboard-link { margin-top: 2px; }
+.compact-empty {
+  margin: 8px 0; padding: 8px 2px; color: var(--muted); font-size: var(--type-body); line-height: 1.5; text-align: center;
+}
+.task-board.is-empty,.claim-grid.is-empty { display: block; }
+
+/* Full charity experience in a modal */
+.charity-experience-backdrop { z-index: 120; padding: 24px; }
+.charity-experience-modal { width: min(1040px,100%); max-height: calc(100vh - 48px); padding: 24px; overflow: auto; }
+.charity-modal-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin: 0 40px 16px 2px; }
+.charity-modal-heading h2 { margin: 2px 0; }
+.charity-modal-heading p { margin: 0; color: var(--muted); font-size: var(--type-body); }
+.charity-experience-modal .charity-scene { width: 100%; min-height: 520px; }
+
+@media (max-width: 720px) {
+  .rules-layout.all-confirmed .rule-list { grid-template-columns: 1fr; }
+  .charity-experience-backdrop { padding: 8px; }
+  .charity-experience-modal { width: 100%; height: calc(100dvh - 16px); max-height: none; padding: 18px 12px 12px; border-radius: 24px; }
+  .charity-modal-heading { align-items: flex-start; margin: 2px 42px 12px 3px; }
+  .charity-modal-heading p { display: none; }
+  .charity-experience-modal .charity-scene { min-height: 540px; }
+  .compact-empty { padding: 6px 1px; font-size: var(--type-meta); }
+}
