@@ -63,7 +63,11 @@ function persist() {
 async function api(path, options = {}) {
   const response = await fetch(path, { credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, ...options });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload.error || '小屋暂时没有回应，请稍后再试');
+  if (!response.ok) {
+    const error = new Error(payload.error || '小屋暂时没有回应，请稍后再试');
+    error.status = response.status;
+    throw error;
+  }
   return payload;
 }
 
@@ -569,6 +573,7 @@ function restore() {
 }
 
 async function bootstrap() {
+  $('#startupError').hidden = true;
   try {
     const payload = await api('/api/state');
     hydrate(payload.state);
@@ -578,7 +583,10 @@ async function bootstrap() {
       sessionStorage.removeItem('roomie-reward-feedback');
       toast('毛线球 +1，谢谢你照顾我们的小屋。',0,'小屋事务已完成');
     }
-  } catch (_) { $('#demoLoginModal').classList.add('open'); }
+  } catch (error) {
+    if (error.status === 401) $('#demoLoginModal').classList.add('open');
+    else $('#startupError').hidden = false;
+  }
 }
 
 $('#demoLoginForm').addEventListener('submit', async event => {
@@ -588,6 +596,7 @@ $('#demoLoginForm').addEventListener('submit', async event => {
   catch (error) { toast(error.message,0,'暂时进不了小屋'); }
 });
 $('#restartDemoAction').addEventListener('click', () => { closeProfileMenu(); $('#demoLoginModal').classList.add('open'); });
+$('#retryStartup').addEventListener('click', bootstrap);
 $('#addSupplyBtn').addEventListener('click', () => openModal('supplyModal'));
 $('#addRuleBtn').addEventListener('click', () => openModal('ruleModal'));
 

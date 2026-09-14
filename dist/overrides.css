@@ -625,3 +625,8 @@ body { font-size: var(--type-body); line-height: 1.55; }
 .demo-login-modal { width: min(430px,100%); text-align: left; }
 .demo-login-modal label { display: block; margin: 22px 0 18px; }
 .demo-login-note { display: block; margin-top: 12px; color: var(--muted); text-align: center; font-size: var(--type-meta); }
+.startup-error { position: fixed; left: 50%; bottom: 28px; z-index: 450; transform: translateX(-50%); width: min(420px,calc(100% - 32px)); display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border-radius: 18px; background: var(--ink); color: #fff; box-shadow: 0 16px 42px rgba(25,42,44,.25); }
+.startup-error[hidden] { display: none; }
+.startup-error b,.startup-error small { display: block; }
+.startup-error small { margin-top: 2px; color: #cbd7d5; font-size: var(--type-meta); }
+.startup-error button { flex: 0 0 auto; border: 0; border-radius: 12px; padding: 9px 12px; background: var(--teal); color: #fff; font-weight: 700; cursor: pointer; }

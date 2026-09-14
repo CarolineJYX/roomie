@@ -10,9 +10,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=dashboard-8" />
-  <link rel="stylesheet" href="./overrides.css?v=dashboard-8" />
-  <link rel="stylesheet" href="./alpaca-game.css?v=dashboard-8" />
+  <link rel="stylesheet" href="./styles.css?v=dashboard-9" />
+  <link rel="stylesheet" href="./overrides.css?v=dashboard-9" />
+  <link rel="stylesheet" href="./alpaca-game.css?v=dashboard-9" />
 </head>
 <body>
   <div class="app-shell">
@@ -154,13 +154,18 @@
     </div>
   </div>
 
-  <div class="modal-backdrop open demo-login-backdrop" id="demoLoginModal" role="dialog" aria-modal="true" aria-labelledby="demoLoginTitle">
+  <div class="modal-backdrop demo-login-backdrop" id="demoLoginModal" role="dialog" aria-modal="true" aria-labelledby="demoLoginTitle">
     <form class="modal demo-login-modal" id="demoLoginForm">
       <span class="eyebrow">WELCOME TO ROOMIE</span><h2 id="demoLoginTitle">进入你的合租 Demo</h2><p>输入昵称即可获得一套独立的演示数据，每次重新登录都能从头体验。</p>
       <label>你的昵称<input name="nickname" maxlength="12" value="林夏" required /></label>
       <button class="primary-btn full">进入晚风公寓</button>
       <small class="demo-login-note">无需密码 · 数据仅用于本次概念体验</small>
     </form>
+  </div>
+
+  <div class="startup-error" id="startupError" role="alert" hidden>
+    <div><b>小屋暂时没有回应</b><small>请检查网络后再试一次。</small></div>
+    <button type="button" id="retryStartup">重新加载</button>
   </div>
 
   <div class="modal-backdrop" id="houseModal" role="dialog" aria-modal="true" aria-labelledby="houseModalTitle">
@@ -218,7 +223,7 @@
   </div>
 
   <div class="celebration" id="celebration" role="status" aria-live="polite"><span>✨</span><div><b id="celebrationTitle">小屋有新动静</b><small id="celebrationText">谢谢你照顾我们的家</small></div></div>
-  <script src="./alpaca-game.js?v=dashboard-8"></script>
-  <script src="./app.js?v=dashboard-8"></script>
+  <script src="./alpaca-game.js?v=dashboard-9"></script>
+  <script src="./app.js?v=dashboard-9"></script>
 </body>
 </html>
