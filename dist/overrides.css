@@ -221,8 +221,7 @@
 .status-chip.claim { background: #fff0dd; color: #b67538; }
 .task-controls { display: flex; gap: 8px; }
 .task-controls .soft-btn, .task-controls .primary-btn { padding: 9px 11px; font-size: .67rem; }
-.task-done, .task-assignee { color: var(--muted); font-size: .7rem; font-weight: 700; }
-.task-done { color: #5a9762; }
+.task-assignee { color: var(--muted); font-size: .7rem; font-weight: 700; }
 .house-task.is-done { opacity: .65; background: #fcfdfb; }
 .house-task.is-paused { border-style: dashed; opacity: .7; }
 
@@ -480,7 +479,7 @@ body { font-size: var(--type-body); line-height: 1.55; }
 .task-copy h2,.claim-card h2,.mini-rule h3,.home-rule-main h3,.bill-row>div:nth-child(2) b,.home-bill-row b,.supply-item b { font-size: var(--type-list); line-height: 1.4; }
 .page-heading p,.task-copy p,.claim-card p,.home-rule-main p,.rule-feature p,.modal>p { font-size: var(--type-body); }
 .bill-row small,.home-bill-row small,.supply-item small,.mini-rule p,.claim-meta,.task-foot,.task-meta,.signatures small,.home-members,.greeting small { font-size: var(--type-meta); }
-.eyebrow,.tag,.kind-chip,.priority-chip,.status-chip,.text-btn,.task-done,.task-assignee { font-size: var(--type-label); }
+.eyebrow,.tag,.kind-chip,.priority-chip,.status-chip,.text-btn,.task-assignee { font-size: var(--type-label); }
 
 /* Profile menu and shared-home flow */
 .top-actions { position: relative; }

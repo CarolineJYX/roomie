@@ -110,7 +110,7 @@ function taskStatus(task) {
 function taskCard(task) {
   const mine = isMine(task);
   const controls = task.status === 'done'
-    ? '<span class="task-done">✓ 已完成</span>'
+    ? ''
     : !task.active
       ? `<button class="soft-btn" data-task-action="resume" data-id="${task.id}">恢复计划</button>`
       : mine && task.status === 'doing'
