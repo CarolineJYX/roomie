@@ -434,16 +434,17 @@ function restock() {
 $$('.restock-btn').forEach(button => button.addEventListener('click', restock));
 $$('.pay-btn').forEach((button, index) => button.addEventListener('click', () => {
   if (button.closest('.bill-row').classList.contains('paid')) return;
-  button.closest('.bill-row').classList.add('paid');
-  button.textContent = '✓ 已结清';
-  button.disabled = true;
+  const row = button.closest('.bill-row');
+  const billTitle = row.querySelector('b').textContent;
+  row.classList.add('paid');
+  button.outerHTML = '<span class="done-label">✓ 已结清</span>';
   appState.paid++;
   const amounts = [86.5, 15, 0];
   $('#dueAmount').textContent = `¥${amounts[appState.paid].toFixed(2)}`;
   renderHomeTasks();
   renderHomeBills();
   persist();
-  rewardRoomieAction(`bill:${index}`, 'bill', button.closest('.bill-row').querySelector('b').textContent);
+  rewardRoomieAction(`bill:${index}`, 'bill', billTitle);
 }));
 function agreeToRule() {
   if (appState.ruleAgreed) return;
@@ -570,8 +571,7 @@ function restore() {
   $$('.pay-btn').forEach((button, index) => {
     if (index >= appState.paid) return;
     button.closest('.bill-row').classList.add('paid');
-    button.textContent = '✓ 已结清';
-    button.disabled = true;
+    button.outerHTML = '<span class="done-label">✓ 已结清</span>';
   });
   renderTasks();
   renderCreatedRecords();
