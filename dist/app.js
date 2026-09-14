@@ -2,6 +2,7 @@ const saved = JSON.parse(localStorage.getItem('roomie-state') || '{}');
 const preferences = JSON.parse(localStorage.getItem('roomie-preferences') || '{}');
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 
 const seedTasks = [
   { id: 'kitchen', icon: '🫧', title: '厨房焕新计划', description: '擦灶台、清理水槽、拖一拖地面，大约 20 分钟。', kind: 'recurring', mode: 'rotate', proponent: '林夏', assignee: '林夏', due: '今天', period: '每周 · 成员轮班', points: 10, priority: 'high', estimateMinutes: 20, status: 'doing', active: true },
@@ -117,11 +118,11 @@ function taskCard(task) {
         : task.id === 'kitchen' && mine
           ? `<button class="soft-btn" data-task-action="pause" data-id="${task.id}">暂停计划</button>`
           : `<span class="task-assignee">${task.assignee} 正在处理</span>`;
-  return `<article class="card house-task ${task.status === 'done' ? 'is-done' : ''} ${!task.active ? 'is-paused' : ''}" data-task-id="${task.id}"><div class="task-symbol">${task.icon}</div><div class="task-copy"><div class="task-meta"><span class="kind-chip ${task.kind}">${taskType(task)}</span><span class="priority-chip ${task.priority}">${priorityLabel(task.priority)}</span><span>预计 ${task.estimateMinutes} 分钟</span><span>${task.period}</span></div><h2>${task.title}</h2><p>${task.description}</p><div class="task-foot"><span>${task.proponent} 提议</span><span>·</span><span>${task.assignee ? `本期由 ${task.assignee}` : '还没有人认领'}</span><span>·</span><span>${task.due}</span><b>完成得 1 个毛线球</b></div></div><div class="task-side"><span class="status-chip ${task.status}">${taskStatus(task)}</span>${controls}</div></article>`;
+  return `<article class="card house-task ${task.status === 'done' ? 'is-done' : ''} ${!task.active ? 'is-paused' : ''}" data-task-id="${escapeHtml(task.id)}"><div class="task-symbol">${escapeHtml(task.icon)}</div><div class="task-copy"><div class="task-meta"><span class="kind-chip ${task.kind}">${taskType(task)}</span><span class="priority-chip ${task.priority}">${priorityLabel(task.priority)}</span><span>预计 ${task.estimateMinutes} 分钟</span><span>${escapeHtml(task.period)}</span></div><h2>${escapeHtml(task.title)}</h2><p>${escapeHtml(task.description)}</p><div class="task-foot"><span>${escapeHtml(task.proponent)} 提议</span><span>·</span><span>${task.assignee ? `本期由 ${escapeHtml(task.assignee)}` : '还没有人认领'}</span><span>·</span><span>${escapeHtml(task.due)}</span><b>完成得 1 个毛线球</b></div></div><div class="task-side"><span class="status-chip ${task.status}">${taskStatus(task)}</span>${controls}</div></article>`;
 }
 
 function claimCard(task) {
-  return `<article class="card claim-card" data-task-id="${task.id}"><div class="claim-card-top"><span class="task-symbol">${task.icon}</span><div><span class="kind-chip ${task.kind}">${taskType(task)}</span><span class="priority-chip ${task.priority}">${priorityLabel(task.priority)}</span></div></div><h2>${task.title}</h2><p>${task.description}</p><div class="claim-meta"><span>${task.proponent} 提议</span><span>${task.due}</span><span>预计 ${task.estimateMinutes} 分钟</span></div><button class="primary-btn full" data-task-action="claim" data-id="${task.id}">我来做</button></article>`;
+  return `<article class="card claim-card" data-task-id="${escapeHtml(task.id)}"><div class="claim-card-top"><span class="task-symbol">${escapeHtml(task.icon)}</span><div><span class="kind-chip ${task.kind}">${taskType(task)}</span><span class="priority-chip ${task.priority}">${priorityLabel(task.priority)}</span></div></div><h2>${escapeHtml(task.title)}</h2><p>${escapeHtml(task.description)}</p><div class="claim-meta"><span>${escapeHtml(task.proponent)} 提议</span><span>${escapeHtml(task.due)}</span><span>预计 ${task.estimateMinutes} 分钟</span></div><button class="primary-btn full" data-task-action="claim" data-id="${escapeHtml(task.id)}">我来做</button></article>`;
 }
 
 function renderHouse() {
@@ -486,11 +487,17 @@ function syncProfile() {
 function renderCreatedRecords() {
   $$('.server-created').forEach(item => item.remove());
   const billHost = $('#billsPage .list-card');
-  (appState.createdBills || []).forEach(bill => billHost.insertAdjacentHTML('beforeend', `<div class="bill-row server-created ${bill.paid ? 'paid' : ''}"><span class="bill-icon">🧾</span><div><b>${bill.title}</b><small>${bill.payer} 垫付 · 新建账单</small></div><div></div><div class="bill-price"><b>¥${Number(bill.amount).toFixed(2)}</b><small>总金额</small></div><button class="soft-btn server-pay" data-bill-id="${bill.id}" ${bill.paid ? 'disabled' : ''}>${bill.paid ? '✓ 已结清' : '结清'}</button></div>`));
+  (appState.createdBills || []).forEach(bill => {
+    const action = bill.paid
+      ? '<span class="done-label">✓ 已结清</span>'
+      : `<button class="soft-btn server-pay" data-bill-id="${escapeHtml(bill.id)}">结清</button>`;
+    billHost.insertAdjacentHTML('beforeend', `<div class="bill-row server-created ${bill.paid ? 'paid' : ''}"><span class="bill-icon">🧾</span><div><b>${escapeHtml(bill.title)}</b><small>${escapeHtml(bill.payer)} 垫付 · 新建账单</small></div><div class="member-stack"><span class="avatar avatar-linxia">夏</span><span class="avatar avatar-chen">陈</span><span class="avatar avatar-yu">宇</span><span class="avatar avatar-nina">N</span></div><div class="bill-price"><b>¥${Number(bill.amount).toFixed(2)}</b><small>总金额</small></div>${action}</div>`);
+  });
   const supplyHost = $('#suppliesPage .shelf-grid');
-  (appState.createdSupplies || []).forEach(item => supplyHost.insertAdjacentHTML('beforeend', `<article class="supply-item server-created ${item.status === 'empty' ? 'urgent' : item.status === 'low' ? 'low' : ''}"><span class="supply-emoji">📦</span><div><b>${item.name}</b><small>${item.note || (item.status === 'good' ? '库存充足' : '记得及时补充')}</small></div><span class="status-good">已登记</span></article>`));
+  (appState.createdSupplies || []).forEach(item => supplyHost.insertAdjacentHTML('beforeend', `<article class="supply-item server-created ${item.status === 'empty' ? 'urgent' : item.status === 'low' ? 'low' : ''}"><span class="supply-emoji">📦</span><div><b>${escapeHtml(item.name)}</b><small>${escapeHtml(item.note || (item.status === 'good' ? '库存充足' : '记得及时补充'))}</small></div><span class="status-good">已登记</span></article>`));
   const ruleHost = $('#rulesPage .rule-list');
-  (appState.createdRules || []).forEach(item => ruleHost.insertAdjacentHTML('beforeend', `<article class="card mini-rule server-created"><span>♡</span><div><small>${item.category}</small><h3>${item.title}</h3><p>${item.description || '等待大家一起确认'}</p></div><b>·</b></article>`));
+  (appState.createdRules || []).forEach(item => ruleHost.insertAdjacentHTML('beforeend', `<article class="card mini-rule server-created"><span>♡</span><div><small>${escapeHtml(item.category)}</small><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.description || '等待大家一起确认')}</p></div><b>·</b></article>`));
+  syncProfile();
 }
 
 async function remoteMutation(path, method, body, rewarded = false) {
