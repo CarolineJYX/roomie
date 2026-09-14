@@ -1,0 +1,14 @@
+[Unit]
+Description=Roomie demo API
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/opt/roomie-api
+Environment=ROOMIE_DB=/var/lib/roomie/roomie.db
+ExecStart=/usr/bin/python3 /opt/roomie-api/app.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

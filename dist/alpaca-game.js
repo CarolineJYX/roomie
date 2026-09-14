@@ -11,8 +11,7 @@
 
   function normalize(input) {
     return {
-      brushProgress: Math.max(0, Math.min(1, Number(input.brushProgress ?? 1))),
-      yarnBalls: Math.max(0, Math.min(5, Number(input.yarnBalls ?? 4))),
+      yarnBalls: Math.max(0, Number(input.yarnBalls ?? 4)),
       lifetimeYarnBalls: Math.max(0, Number(input.lifetimeYarnBalls ?? input.yarnBalls ?? 4)),
       donationCents: Math.max(0, Number(input.donationCents ?? 0)),
       selectedCause: input.selectedCause || null,
@@ -26,7 +25,7 @@
         <header class="rumi-copy">
           <span class="rumi-kicker">ROOMIE 公益概念体验</span>
           <h1>照顾小屋，也为世界添一点暖</h1>
-          <p>完成两件小事，帮绒米梳出一团暖心毛线。</p>
+          <p>每完成一项合租事务，绒米就会收获一个暖心毛线球。</p>
         </header>
         <div class="rumi-stage" aria-hidden="true">
           <div class="rumi-shadow"></div>
@@ -37,10 +36,9 @@
         </div>
         <aside class="rumi-hud">
           <div class="rumi-name"><span>🦙</span><div><b>绒米 Rumi</b><small>晚风公寓的公益小室友</small></div></div>
-          <div class="rumi-progress-row"><span>梳毛进度</span><b data-brush-label>1 / 2</b></div>
-          <div class="rumi-progress"><i data-brush-bar></i></div>
           <div class="rumi-yarn-head"><span>暖心毛线球</span><strong data-yarn-label>4 / 5</strong></div>
           <div class="rumi-yarn-slots" data-yarn-slots></div>
+          <p class="rumi-exchange">5 个毛线球 = ¥1 模拟公益金</p>
           <button class="rumi-donate" data-rumi-donate disabled>集齐 5 团，送出 ¥1 温暖</button>
           <div class="rumi-impact"><span>本小屋已送出</span><b data-donation>¥0</b><small>平台公益池 · 演示数据</small></div>
         </aside>
@@ -79,12 +77,10 @@
 
   function update() {
     if (!root) return;
-    root.querySelector('[data-brush-label]').textContent = `${state.brushProgress} / 2`;
-    root.querySelector('[data-brush-bar]').style.width = `${state.brushProgress * 50}%`;
     root.querySelector('[data-yarn-label]').textContent = `${state.yarnBalls} / 5`;
-    root.querySelector('[data-yarn-slots]').innerHTML = Array.from({ length: 5 }, (_, index) => `<i class="${index < state.yarnBalls ? 'filled' : ''}">〰</i>`).join('');
+    root.querySelector('[data-yarn-slots]').innerHTML = Array.from({ length: 5 }, (_, index) => `<i class="${index < Math.min(5,state.yarnBalls) ? 'filled' : ''}">〰</i>`).join('');
     const donateButton = root.querySelector('[data-rumi-donate]');
-    donateButton.disabled = state.yarnBalls < 5 || locked;
+    donateButton.disabled = state.yarnBalls < 5;
     donateButton.textContent = state.yarnBalls >= 5 ? '送出 ¥1 温暖 →' : '集齐 5 团，送出 ¥1 温暖';
     root.querySelector('[data-donation]').textContent = `¥${(state.donationCents / 100).toFixed(0)}`;
   }
@@ -108,31 +104,27 @@
   }
 
   function reward(action) {
-    if (!root || locked || state.yarnBalls >= 5) return false;
-    locked = true;
-    root.querySelector('.rumi-game').classList.add('is-rewarding');
-    const madeBall = state.brushProgress >= 1;
-    if (madeBall) {
-      state.brushProgress = 0;
-      state.yarnBalls += 1;
-      state.lifetimeYarnBalls += 1;
-    } else {
-      state.brushProgress += 1;
+    if (!root) return false;
+    state.yarnBalls += 1;
+    state.lifetimeYarnBalls += 1;
+    update();
+    emit();
+    showReceipt('毛线球 +1，谢谢你照顾我们的小屋。');
+    if (!locked) {
+      locked = true;
+      root.querySelector('.rumi-game').classList.add('is-rewarding');
     }
     window.setTimeout(() => {
       root.querySelector('.rumi-game')?.classList.remove('is-rewarding');
       locked = false;
-      update();
-      emit();
-      showReceipt(madeBall ? '绒米梳出了一团暖心毛线！' : '梳毛进度 +1，再完成一件小事就能成团。');
-      if (state.yarnBalls >= 5) window.setTimeout(openDonation, 450);
     }, prefersReducedMotion() ? 350 : 3000);
+    if (state.yarnBalls >= 5) window.setTimeout(openDonation, 450);
     return true;
   }
 
   function prefersReducedMotion() { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
   function openDonation() {
-    if (!root || state.yarnBalls < 5 || locked) return false;
+    if (!root || state.yarnBalls < 5) return false;
     root.querySelector('[data-rumi-modal]').classList.add('open');
     return true;
   }
@@ -149,7 +141,7 @@
     update();
     emit();
     if (typeof options.onDonation === 'function') options.onDonation(clone(receipt));
-    showReceipt(`晚风公寓向「${cause}」送出了 ¥1 模拟公益金`, true);
+    showReceipt(`本小屋已向「${cause}」送出 ¥1 模拟公益金`, true);
   }
 
   function showReceipt(message, celebration) {
@@ -161,7 +153,7 @@
 
   function getState() { return clone(state); }
   function resetDemo() {
-    state = normalize({ brushProgress: 1, yarnBalls: 4, lifetimeYarnBalls: 4, donationCents: 0, receipts: [] });
+    state = normalize({ yarnBalls: 4, lifetimeYarnBalls: 4, donationCents: 0, receipts: [] });
     locked = false;
     closeDonation();
     update();

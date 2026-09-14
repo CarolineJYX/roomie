@@ -1,4 +1,5 @@
 const saved = JSON.parse(localStorage.getItem('roomie-state') || '{}');
+const preferences = JSON.parse(localStorage.getItem('roomie-preferences') || '{}');
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
@@ -17,20 +18,38 @@ const initialTasks = (saved.tasks ?? seedTasks).map(task => {
   const fallback = taskDefaults[task.id] || ['normal', 15];
   return { ...task, priority: task.priority ?? fallback[0], estimateMinutes: task.estimateMinutes ?? fallback[1] };
 });
+function migrateAlpacaState(previous) {
+  if (!previous) return { yarnBalls: 4, lifetimeYarnBalls: 4, rewardModelVersion: 3 };
+  if (previous.rewardModelVersion === 3) return {
+    yarnBalls: Math.max(0, Number(previous.yarnBalls ?? 0)),
+    lifetimeYarnBalls: Math.max(0, Number(previous.lifetimeYarnBalls ?? previous.yarnBalls ?? 0)),
+    rewardModelVersion: 3
+  };
+  const migratedReward = Number(previous.brushProgress ?? 0) > 0 ? 1 : 0;
+  const migratedTotal = Math.max(0, Number(previous.yarnBalls ?? 4)) + migratedReward + Math.max(0,Number(previous.pendingYarnBalls ?? 0));
+  return {
+    yarnBalls: migratedTotal,
+    lifetimeYarnBalls: Math.max(0, Number(previous.lifetimeYarnBalls ?? previous.yarnBalls ?? 4)) + migratedReward,
+    rewardModelVersion: 3
+  };
+}
 const appState = {
   restocked: saved.restocked ?? false,
   paid: saved.paid ?? 0,
   ruleAgreed: saved.ruleAgreed ?? false,
   name: saved.name ?? '林夏',
-  avatar: saved.avatar ?? 2,
-  color: saved.color ?? '#55B8B3',
+  avatar: preferences.avatar ?? saved.avatar ?? 2,
+  color: preferences.color ?? saved.color ?? '#55B8B3',
   house: {
     name: saved.house?.name ?? '晚风公寓',
     inviteCode: saved.house?.inviteCode ?? 'ROOMIE88',
     joinedCode: saved.house?.joinedCode ?? null
   },
   tasks: initialTasks,
-  alpaca: saved.alpaca ?? { brushProgress: 1, yarnBalls: 4, lifetimeYarnBalls: 4 },
+  createdBills: saved.createdBills ?? [],
+  createdSupplies: saved.createdSupplies ?? [],
+  createdRules: saved.createdRules ?? [],
+  alpaca: migrateAlpacaState(saved.alpaca),
   charity: saved.charity ?? { houseDonationCents: 0, selectedCause: null, receipts: [] },
   rewardedActionIds: saved.rewardedActionIds ?? []
 };
@@ -38,7 +57,20 @@ const appState = {
 let alpacaGame = null;
 
 function persist() {
-  localStorage.setItem('roomie-state', JSON.stringify(appState));
+  localStorage.setItem('roomie-preferences', JSON.stringify({ avatar: appState.avatar, color: appState.color }));
+}
+
+async function api(path, options = {}) {
+  const response = await fetch(path, { credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, ...options });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || '小屋暂时没有回应，请稍后再试');
+  return payload;
+}
+
+function hydrate(state) {
+  ['name','restocked','paid','ruleAgreed','house','tasks','alpaca','charity','rewardedActionIds','createdBills','createdSupplies','createdRules'].forEach(key => {
+    if (state[key] !== undefined) appState[key] = state[key];
+  });
 }
 
 function isMine(task) { return task.assignee === appState.name; }
@@ -81,7 +113,7 @@ function taskCard(task) {
         : task.id === 'kitchen' && mine
           ? `<button class="soft-btn" data-task-action="pause" data-id="${task.id}">暂停计划</button>`
           : `<span class="task-assignee">${task.assignee} 正在处理</span>`;
-  return `<article class="card house-task ${task.status === 'done' ? 'is-done' : ''} ${!task.active ? 'is-paused' : ''}" data-task-id="${task.id}"><div class="task-symbol">${task.icon}</div><div class="task-copy"><div class="task-meta"><span class="kind-chip ${task.kind}">${taskType(task)}</span><span class="priority-chip ${task.priority}">${priorityLabel(task.priority)}</span><span>预计 ${task.estimateMinutes} 分钟</span><span>${task.period}</span></div><h2>${task.title}</h2><p>${task.description}</p><div class="task-foot"><span>${task.proponent} 提议</span><span>·</span><span>${task.assignee ? `本期由 ${task.assignee}` : '还没有人认领'}</span><span>·</span><span>${task.due}</span><b>完成可梳毛</b></div></div><div class="task-side"><span class="status-chip ${task.status}">${taskStatus(task)}</span>${controls}</div></article>`;
+  return `<article class="card house-task ${task.status === 'done' ? 'is-done' : ''} ${!task.active ? 'is-paused' : ''}" data-task-id="${task.id}"><div class="task-symbol">${task.icon}</div><div class="task-copy"><div class="task-meta"><span class="kind-chip ${task.kind}">${taskType(task)}</span><span class="priority-chip ${task.priority}">${priorityLabel(task.priority)}</span><span>预计 ${task.estimateMinutes} 分钟</span><span>${task.period}</span></div><h2>${task.title}</h2><p>${task.description}</p><div class="task-foot"><span>${task.proponent} 提议</span><span>·</span><span>${task.assignee ? `本期由 ${task.assignee}` : '还没有人认领'}</span><span>·</span><span>${task.due}</span><b>完成得 1 个毛线球</b></div></div><div class="task-side"><span class="status-chip ${task.status}">${taskStatus(task)}</span>${controls}</div></article>`;
 }
 
 function claimCard(task) {
@@ -93,7 +125,7 @@ function renderHouse() {
   const yarnText = $('#petYarnText');
   const progressFill = $('#petProgressFill');
   const petEntry = $('.pet-entry');
-  if (yarnText) yarnText.textContent = `暖心毛线 ${yarnBalls}/5`;
+  if (yarnText) yarnText.textContent = `暖心毛线 ${appState.alpaca.yarnBalls}/5`;
   if (progressFill) progressFill.style.width = `${yarnBalls * 20}%`;
   if (petEntry) petEntry.setAttribute('aria-label', `进入小屋公益，暖心毛线 ${yarnBalls}/5`);
   syncProfile();
@@ -192,7 +224,7 @@ function rewardRoomieAction(actionId, type, label) {
   if (!accepted) return false;
   appState.rewardedActionIds.push(actionId);
   persist();
-  if (!$('#charityExperienceModal').classList.contains('open')) toast(`${label}已完成，暖心进度已经记下。`, 0, '小屋事务已更新');
+  if (!$('#charityExperienceModal').classList.contains('open')) toast('毛线球 +1，谢谢你照顾我们的小屋。', 0, `${label}已完成`);
   return true;
 }
 
@@ -202,8 +234,7 @@ function completeTask(id) {
   task.status = 'done';
   const actor = task.assignee || appState.name;
   renderTasks();
-  const todayKey = new Date().toISOString().slice(0, 10);
-  const rewardId = task.kind === 'temporary' && task.id.startsWith('task-') ? `custom:${todayKey}` : `task:${task.id}`;
+  const rewardId = `task:${task.id}`;
   const rewarded = rewardRoomieAction(rewardId, 'task', task.title);
   if (!rewarded) toast(`${actor} 完成了「${task.title}」。`, 0, '小事完成啦');
 }
@@ -214,7 +245,7 @@ function claimTask(id) {
   task.status = 'doing';
   task.assignee = appState.name;
   renderTasks();
-  toast('这件小事交给你啦，完成后可以为绒米梳毛。');
+  toast('这件小事交给你啦，完成后会得到 1 个毛线球。');
   $$('.task-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.taskView === 'schedule'));
   $$('.task-view').forEach(view => view.classList.toggle('active', view.id === 'scheduleView'));
 }
@@ -448,10 +479,53 @@ function syncProfile() {
   $$('[data-house-name]').forEach(item => { item.textContent = appState.house.name; });
 }
 
+function renderCreatedRecords() {
+  $$('.server-created').forEach(item => item.remove());
+  const billHost = $('#billsPage .list-card');
+  (appState.createdBills || []).forEach(bill => billHost.insertAdjacentHTML('beforeend', `<div class="bill-row server-created ${bill.paid ? 'paid' : ''}"><span class="bill-icon">🧾</span><div><b>${bill.title}</b><small>${bill.payer} 垫付 · 新建账单</small></div><div></div><div class="bill-price"><b>¥${Number(bill.amount).toFixed(2)}</b><small>总金额</small></div><button class="soft-btn server-pay" data-bill-id="${bill.id}" ${bill.paid ? 'disabled' : ''}>${bill.paid ? '✓ 已结清' : '结清'}</button></div>`));
+  const supplyHost = $('#suppliesPage .shelf-grid');
+  (appState.createdSupplies || []).forEach(item => supplyHost.insertAdjacentHTML('beforeend', `<article class="supply-item server-created ${item.status === 'empty' ? 'urgent' : item.status === 'low' ? 'low' : ''}"><span class="supply-emoji">📦</span><div><b>${item.name}</b><small>${item.note || (item.status === 'good' ? '库存充足' : '记得及时补充')}</small></div><span class="status-good">已登记</span></article>`));
+  const ruleHost = $('#rulesPage .rule-list');
+  (appState.createdRules || []).forEach(item => ruleHost.insertAdjacentHTML('beforeend', `<article class="card mini-rule server-created"><span>♡</span><div><small>${item.category}</small><h3>${item.title}</h3><p>${item.description || '等待大家一起确认'}</p></div><b>·</b></article>`));
+}
+
+async function remoteMutation(path, method, body, rewarded = false) {
+  try {
+    const payload = await api(path, { method, body: JSON.stringify(body || {}) });
+    hydrate(payload.state);
+    if (rewarded) sessionStorage.setItem('roomie-reward-feedback', '1');
+    location.reload();
+  } catch (error) { toast(error.message, 0, '还差一点点'); }
+}
+
+document.addEventListener('submit', event => {
+  const form = event.target;
+  if (!['billForm','taskForm','supplyForm','ruleForm'].includes(form.id)) return;
+  event.preventDefault(); event.stopImmediatePropagation();
+  const data = Object.fromEntries(new FormData(form));
+  if (form.id === 'billForm') return remoteMutation('/api/bills','POST',{ title:data.title, amount:Number(data.amount), payer:data.payer });
+  if (form.id === 'supplyForm') return remoteMutation('/api/supplies','POST',data);
+  if (form.id === 'ruleForm') return remoteMutation('/api/rules','POST',data);
+  const kind=data.taskKind, mode=data.taskMode;
+  return remoteMutation('/api/tasks','POST',{ icon:kind==='recurring'?'🪴':'✦', title:data.taskTitle, description:data.taskDescription||'一件需要大家一起照看的小事。', kind, mode, proponent:appState.name, assignee:mode==='claim'?null:mode==='assign'?data.taskAssignee:appState.name, due:data.taskDue, period:kind==='recurring'?`${data.taskCycle} · ${mode==='rotate'?'成员轮班':mode==='claim'?'公开认领':'指定任务'}`:`一次性 · ${mode==='claim'?'公开认领':'指定任务'}`, points:5, priority:data.taskPriority, estimateMinutes:Number(data.taskEstimate), status:mode==='claim'?'claim':'doing', active:true });
+}, true);
+
+document.addEventListener('click', event => {
+  const taskAction = event.target.closest('[data-task-action]');
+  if (taskAction) { event.preventDefault(); event.stopImmediatePropagation(); return remoteMutation(`/api/tasks/${taskAction.dataset.id}`,'PATCH',{action:taskAction.dataset.taskAction},taskAction.dataset.taskAction==='complete'); }
+  const serverPay = event.target.closest('[data-bill-id]');
+  if (serverPay) { event.preventDefault(); event.stopImmediatePropagation(); return remoteMutation(`/api/bills/${serverPay.dataset.billId}/pay`,'PATCH',{},true); }
+  const pay = event.target.closest('.pay-btn');
+  if (pay) { event.preventDefault(); event.stopImmediatePropagation(); const id=pay.closest('#electricBill')?'electric':'tissue'; return remoteMutation(`/api/bills/${id}/pay`,'PATCH',{},true); }
+  const restockButton = event.target.closest('.restock-btn');
+  if (restockButton) { event.preventDefault(); event.stopImmediatePropagation(); return remoteMutation('/api/supplies/trash-bags','PATCH',{action:'restock'},true); }
+  const agree = event.target.closest('#agreeRule,#homeAgreeRule');
+  if (agree) { event.preventDefault(); event.stopImmediatePropagation(); return remoteMutation('/api/rules/quiet-hours/agree','PATCH',{},true); }
+}, true);
+
 function restore() {
   alpacaGame = window.RoomieAlpacaGame.init({
     container: '#alpacaGameMount',
-    brushProgress: appState.alpaca.brushProgress,
     yarnBalls: appState.alpaca.yarnBalls,
     lifetimeYarnBalls: appState.alpaca.lifetimeYarnBalls,
     donationCents: appState.charity.houseDonationCents,
@@ -459,10 +533,11 @@ function restore() {
     receipts: appState.charity.receipts,
     causes: ['困境青年生活包', '留守儿童关怀', '女性专项支持'],
     onStateChange(nextState) {
+      const reachedDonation = appState.alpaca.yarnBalls < 5 && nextState.yarnBalls >= 5;
       appState.alpaca = {
-        brushProgress: nextState.brushProgress,
         yarnBalls: nextState.yarnBalls,
-        lifetimeYarnBalls: nextState.lifetimeYarnBalls
+        lifetimeYarnBalls: nextState.lifetimeYarnBalls,
+        rewardModelVersion: 3
       };
       appState.charity = {
         houseDonationCents: nextState.donationCents,
@@ -471,6 +546,14 @@ function restore() {
       };
       persist();
       renderHouse();
+      if (reachedDonation) {
+        openModal('charityExperienceModal');
+        toast('暖心毛线集齐啦，选择一份善意送出去吧。', 0, '5 个毛线球已集齐');
+        window.setTimeout(() => alpacaGame.openDonation(), 450);
+      }
+    },
+    onDonation(receipt) {
+      api('/api/charity/donate', { method:'POST', body:JSON.stringify({ cause:receipt.cause }) }).catch(error => toast(error.message,0,'公益记录未保存'));
     }
   });
   syncProfile();
@@ -486,11 +569,39 @@ function restore() {
     button.disabled = true;
   });
   renderTasks();
+  renderCreatedRecords();
   renderHomeBills();
   renderHomeRule();
 }
 
-restore();
+async function bootstrap() {
+  try {
+    const payload = await api('/api/state');
+    hydrate(payload.state);
+    closeModal('demoLoginModal');
+    restore();
+    if (sessionStorage.getItem('roomie-reward-feedback')) {
+      sessionStorage.removeItem('roomie-reward-feedback');
+      toast('毛线球 +1，谢谢你照顾我们的小屋。',0,'小屋事务已完成');
+      if (appState.alpaca.yarnBalls >= 5) {
+        openModal('charityExperienceModal');
+        window.setTimeout(() => alpacaGame.openDonation(),450);
+      }
+    }
+  } catch (_) { $('#demoLoginModal').classList.add('open'); }
+}
+
+$('#demoLoginForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  const nickname = new FormData(event.currentTarget).get('nickname').trim();
+  try { await api('/api/demo/login',{method:'POST',body:JSON.stringify({nickname})}); location.reload(); }
+  catch (error) { toast(error.message,0,'暂时进不了小屋'); }
+});
+$('#restartDemoAction').addEventListener('click', () => { closeProfileMenu(); $('#demoLoginModal').classList.add('open'); });
+$('#addSupplyBtn').addEventListener('click', () => openModal('supplyModal'));
+$('#addRuleBtn').addEventListener('click', () => openModal('ruleModal'));
+
+bootstrap();
 
 window.matchMedia('(max-width: 720px)').addEventListener('change', () => {
   if ($('#roomScene')) renderHouse();
