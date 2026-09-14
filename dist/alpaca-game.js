@@ -118,7 +118,6 @@
       root.querySelector('.rumi-game')?.classList.remove('is-rewarding');
       locked = false;
     }, prefersReducedMotion() ? 350 : 3000);
-    if (state.yarnBalls >= 5) window.setTimeout(openDonation, 450);
     return true;
   }
 

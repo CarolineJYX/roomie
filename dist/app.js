@@ -533,7 +533,6 @@ function restore() {
     receipts: appState.charity.receipts,
     causes: ['困境青年生活包', '留守儿童关怀', '女性专项支持'],
     onStateChange(nextState) {
-      const reachedDonation = appState.alpaca.yarnBalls < 5 && nextState.yarnBalls >= 5;
       appState.alpaca = {
         yarnBalls: nextState.yarnBalls,
         lifetimeYarnBalls: nextState.lifetimeYarnBalls,
@@ -546,11 +545,6 @@ function restore() {
       };
       persist();
       renderHouse();
-      if (reachedDonation) {
-        openModal('charityExperienceModal');
-        toast('暖心毛线集齐啦，选择一份善意送出去吧。', 0, '5 个毛线球已集齐');
-        window.setTimeout(() => alpacaGame.openDonation(), 450);
-      }
     },
     onDonation(receipt) {
       api('/api/charity/donate', { method:'POST', body:JSON.stringify({ cause:receipt.cause }) }).catch(error => toast(error.message,0,'公益记录未保存'));
@@ -583,10 +577,6 @@ async function bootstrap() {
     if (sessionStorage.getItem('roomie-reward-feedback')) {
       sessionStorage.removeItem('roomie-reward-feedback');
       toast('毛线球 +1，谢谢你照顾我们的小屋。',0,'小屋事务已完成');
-      if (appState.alpaca.yarnBalls >= 5) {
-        openModal('charityExperienceModal');
-        window.setTimeout(() => alpacaGame.openDonation(),450);
-      }
     }
   } catch (_) { $('#demoLoginModal').classList.add('open'); }
 }
