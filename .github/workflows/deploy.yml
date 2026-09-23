@@ -1,4 +1,4 @@
-name: Deploy Roomie
+name: Deploy MangaMe and Roomie
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
       - 'dist/**'
       - 'server/**'
       - 'deploy/**'
+      - 'mangame-prototype/**'
       - '.github/workflows/deploy.yml'
 
 permissions:
@@ -29,19 +30,21 @@ jobs:
           chmod 600 ~/.ssh/roomie-deploy.pem
           ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
 
-      - name: Sync Roomie site
+      - name: Sync sites and services
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
           rsync -az --delete -e "ssh -i ~/.ssh/roomie-deploy.pem" dist/ "$DEPLOY_USER@$DEPLOY_HOST:/var/www/roomie/"
           rsync -az --delete -e "ssh -i ~/.ssh/roomie-deploy.pem" server/ "$DEPLOY_USER@$DEPLOY_HOST:~/roomie-api-release/"
+          rsync -az --delete -e "ssh -i ~/.ssh/roomie-deploy.pem" mangame-prototype/ "$DEPLOY_USER@$DEPLOY_HOST:~/mangame-release/"
           rsync -az -e "ssh -i ~/.ssh/roomie-deploy.pem" deploy/ "$DEPLOY_USER@$DEPLOY_HOST:~/roomie-deploy/"
 
-      - name: Activate Roomie API
+      - name: Activate MangaMe and Roomie
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
-          ssh -i ~/.ssh/roomie-deploy.pem "$DEPLOY_USER@$DEPLOY_HOST" 'sudo install -d -o ubuntu -g ubuntu /opt/roomie-api /var/lib/roomie && sudo rsync -a --delete ~/roomie-api-release/ /opt/roomie-api/ && sudo install -m 644 ~/roomie-deploy/roomie-api.service /etc/systemd/system/roomie-api.service && sudo install -m 644 ~/roomie-deploy/nginx-roomie.conf /etc/nginx/sites-available/roomie && sudo install -m 644 ~/roomie-deploy/nginx-roomie.conf /etc/nginx/sites-enabled/roomie && sudo systemctl daemon-reload && sudo systemctl enable --now roomie-api && sudo systemctl restart roomie-api && sudo nginx -t && sudo systemctl reload nginx'
-          curl --fail --retry 6 --retry-delay 2 "http://$DEPLOY_HOST/api/health"
+          ssh -i ~/.ssh/roomie-deploy.pem "$DEPLOY_USER@$DEPLOY_HOST" 'sudo install -d -o ubuntu -g ubuntu /opt/roomie-api /opt/mangame /var/lib/roomie && sudo rsync -a --delete ~/roomie-api-release/ /opt/roomie-api/ && sudo rsync -a --delete ~/mangame-release/ /opt/mangame/ && test -s /etc/mangame.env && sudo python3 -m venv /opt/mangame-venv && sudo /opt/mangame-venv/bin/pip install --disable-pip-version-check -r /opt/mangame/requirements.txt && sudo install -m 644 ~/roomie-deploy/roomie-api.service /etc/systemd/system/roomie-api.service && sudo install -m 644 ~/roomie-deploy/mangame.service /etc/systemd/system/mangame.service && sudo install -m 644 ~/roomie-deploy/nginx-roomie.conf /etc/nginx/sites-available/roomie && sudo install -m 644 ~/roomie-deploy/nginx-roomie.conf /etc/nginx/sites-enabled/roomie && sudo systemctl daemon-reload && sudo systemctl enable --now roomie-api mangame && sudo systemctl restart roomie-api mangame && sudo nginx -t && sudo systemctl reload nginx'
+          curl --fail --retry 6 --retry-delay 2 "http://$DEPLOY_HOST/api/config"
+          curl --fail --retry 6 --retry-delay 2 -H "Host: roomie.$DEPLOY_HOST.nip.io" "http://$DEPLOY_HOST/api/health"

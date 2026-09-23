@@ -1,0 +1,20 @@
+[Unit]
+Description=MangaMe public demo
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/mangame
+EnvironmentFile=/etc/mangame.env
+Environment=PUBLIC_ORIGIN=http://43.130.7.180
+ExecStart=/opt/mangame-venv/bin/python /opt/mangame/prompt_server.py
+Restart=on-failure
+RestartSec=3
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

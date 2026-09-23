@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MangaMe · GPT-5 Prompt 测试</title><link rel="stylesheet" href="prompt-test.css"><link rel="icon" href="data:,"></head>
+<body>
+<header><a href="/">MangaMe</a><span>真实对话测试 · gpt-5 · 不生成图片</span></header>
+<main>
+<section class="intro"><p class="eyebrow">从一张照片，聊出一篇漫画</p><h1>先讲故事，再看看 AI 会怎么画。</h1><p>第一轮由 GPT-5 看图后自然开场。你可以自由回答，随时让它整理最终的漫画 Prompt。</p><p id="connection" role="status">正在检查本地后端……</p></section>
+<div class="workspace">
+<aside>
+<label class="file-label" for="photo">选择一张照片</label><input id="photo" type="file" accept="image/jpeg,image/png,image/webp"><p class="muted">静态 JPEG / PNG / WebP，最多 8 MB。</p>
+<button id="sample" class="secondary">使用宿舍示例照片</button>
+<img id="preview" alt="当前选择的照片" hidden>
+<label class="consent"><input id="consent" type="checkbox">我确认有权使用这张照片，并同意将照片及本次对话发送给 OpenAI 官方 API。</label>
+<button id="start" disabled>看图，开始聊天</button><button id="clear" class="secondary">清空本次会话</button>
+<p class="muted">密钥仅由本地后端读取。照片会缩小并去除元数据。会话不写入磁盘；重启后端后清空。store:false 不代表 OpenAI 零留存。</p>
+<p class="muted">每会话最多 12 次调用，每次启动最多 50 次。包含失败尝试；无自动重试，不是美元硬性预算。</p>
+</aside>
+<section class="chat-area">
+<div id="chat" aria-live="polite"><p class="empty">上传照片后，AI 会先回应看见的细节，再问你照片的时间和故事。</p></div>
+<input id="allow-dialogue" type="checkbox" hidden disabled><p class="muted">当前使用原版生成规则：以真实讲述和旁白为主，只使用用户提供的确切对白，不改编台词。</p>
+<form id="reply-form"><label for="reply">讲讲照片背后的故事</label><textarea id="reply" maxlength="2000" rows="4" placeholder="例如：大学报到第一天，我和小陈刚成为室友……" disabled></textarea><div class="actions"><button id="send" type="submit" disabled>发送回答</button><button id="finish" type="button" class="secondary" disabled>整理漫画 Prompt</button></div></form>
+<p id="error" class="error" role="alert" hidden></p><p id="working" role="status" hidden>GPT-5 正在处理，请保持页面打开。不会自动重试。</p>
+<p id="usage" class="muted">尚未调用模型。</p>
+<details><summary>查看本轮请求说明</summary><p>显示系统指令和调用设置，不包含密钥、图片 Base64 或模型隐藏推理。对话历史包含在每次请求中。</p><pre id="debug">尚未调用。</pre></details>
+</section>
+</div>
+<section id="output" hidden><div class="output-head"><div><p class="eyebrow">最终产出 · 供你审阅</p><h2>漫画生成 Prompt</h2></div><div class="actions"><button id="copy" class="secondary">复制全文</button><button id="save" class="secondary">下载 TXT</button></div></div><p>先检查人物对应、事件顺序和中文文案。这里没有生成图片；复制的 Prompt 可交给你自己的图片接口。</p><p id="output-mode" class="muted" role="status"></p><pre id="prompt" tabindex="0"></pre><p id="copy-status" role="status"></p></section>
+</main><script src="prompt-test.js"></script></body></html>
