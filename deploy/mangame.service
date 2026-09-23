@@ -10,7 +10,7 @@ Group=ubuntu
 WorkingDirectory=/opt/mangame
 EnvironmentFile=/etc/mangame.env
 Environment=PUBLIC_ORIGIN=http://43.130.7.180
-ExecStart=/opt/mangame-venv/bin/python /opt/mangame/prompt_server.py
+ExecStart=/usr/bin/python3 /opt/mangame/prompt_server.py
 Restart=on-failure
 RestartSec=3
 PrivateTmp=true
