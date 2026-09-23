@@ -284,16 +284,33 @@ function LiveWorkflow({
   }
   async function content(d = job) {
     try {
-      const data = await api('/api/image-content', {
-        session: sid.current,
-        request_id: d.request_id
-      }, 30000);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 120000);
+      let response;
+      try {
+        response = await fetch('/api/image-content', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-MangaMe-Token': config.csrf
+          },
+          body: JSON.stringify({
+            session: sid.current,
+            request_id: d.request_id
+          }),
+          signal: controller.signal
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+      if (!response.ok) {
+        const detail = await response.json().catch(() => ({}));
+        throw new Error(detail.error || `读取失败（${response.status}）`);
+      }
+      const blob = await response.blob();
       if (!alive.current) return;
-      const bytes = Uint8Array.from(atob(data.image_base64), c => c.charCodeAt(0));
       if (url.current) URL.revokeObjectURL(url.current);
-      url.current = URL.createObjectURL(new Blob([bytes], {
-        type: 'image/png'
-      }));
+      url.current = URL.createObjectURL(blob);
       setImageUrl(url.current);
       setStage('result');
       setError('');

@@ -381,7 +381,10 @@ class State:
                 if path == "/api/image-content":
                     if job["status"] != "ready":
                         raise SafeError("图片尚未生成成功。", 409)
-                    result.update(image_base64=base64.b64encode(job["image"]).decode("ascii"), mime="image/png")
+                    # Return the original PNG bytes. Encoding a multi-megabyte image as
+                    # JSON/base64 made the payload 33% larger and forced the browser to
+                    # allocate another full copy before it could display the result.
+                    return {"_binary": job["image"], "mime": "image/png"}
                 return result
             prompt = body.get("prompt")
             quality = body.get("quality", "high")
@@ -698,7 +701,12 @@ def make_handler(state):
                 if not isinstance(body, dict):
                     raise SafeError("请求格式错误。")
                 result = state.dispatch(self.path, body)
-                self.send(200, result)
+                if self.path == "/api/image-content" and isinstance(result, dict) and "_binary" in result:
+                    # Image downloads can be slower than API JSON on mobile networks.
+                    self.connection.settimeout(120)
+                    self.send(200, result["_binary"], result.get("mime", "image/png"))
+                else:
+                    self.send(200, result)
             except SafeError as error:
                 counts = (getattr(error, "voice_counts", state.voice_counts(body)) if voice
                           else state.image_counts(body) if image else {})
