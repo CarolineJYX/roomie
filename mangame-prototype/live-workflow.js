@@ -4,6 +4,15 @@ const {
   useRef: useLiveRef
 } = React;
 const AUTO_STYLE_NOTE = '参考图用途：第一张图片是本次人物和身份的唯一参考。第二张图片若附带，只用于画风、美化程度、线稿和光影参考，不复制其中人物、服装、场景和故事。输出规格：一张1024×1536的PNG竖版多格漫画。';
+function createRequestId() {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  bytes[6] = bytes[6] & 15 | 64;
+  bytes[8] = bytes[8] & 63 | 128;
+  const hex = [...bytes].map(value => value.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
 function LiveWorkflow({
   onHome,
   onExample
@@ -212,21 +221,20 @@ function LiveWorkflow({
     if (submittingImage.current) return;
     if (retry && !confirm('重新生成会新增一次Image2付费调用。确认继续？')) return;
     submittingImage.current = true;
-    const body = {
-      session: sid.current,
-      request_id: crypto.randomUUID(),
-      prompt: text + '\n\n' + AUTO_STYLE_NOTE,
-      quality,
-      use_style: style,
-      confirm_cost: true
-    };
-    request.current = body;
-    setJob(null);
-    setError('');
-    setOperation('submitting');
-    if (retry) generation();
-    setOperation('submitting');
     try {
+      const body = {
+        session: sid.current,
+        request_id: createRequestId(),
+        prompt: text + '\n\n' + AUTO_STYLE_NOTE,
+        quality,
+        use_style: style,
+        confirm_cost: true
+      };
+      request.current = body;
+      setJob(null);
+      setError('');
+      setOperation('submitting');
+      if (retry) generation();
       await accept(await api('/api/image-generate', body, 20000));
     } catch (e) {
       setError('尚未确认生图任务：' + e.message + '。请先查询任务，不要重新生成。');

@@ -362,6 +362,9 @@ class State:
             job.update(outcome, finished_at=time.time(), elapsed=time.monotonic() - job["started"])
             session["updated"] = time.monotonic()
             self.image_inflight = None
+        print(json.dumps({"event": "image_generation", "status": outcome["status"],
+                          "seconds": round(job["elapsed"], 2),
+                          "bytes": len(outcome.get("image", b""))}), flush=True)
 
     def image_dispatch(self, path, body):
         sid = body.get("session")
@@ -586,6 +589,8 @@ class State:
             try:
                 result = self.provider(payload)
             except SafeError as error:
+                print(json.dumps({"event": "text_generation", "path": path, "status": "failed",
+                                  "seconds": round(time.monotonic() - started, 2)}), flush=True)
                 return {"error": error.message, "session": sid, "calls": session["calls"], "total_calls": self.total}
             session["updated"] = time.monotonic()
             if not final:
@@ -594,6 +599,8 @@ class State:
                 session["messages"] = history
             if final:
                 session["final_prompt"] = result["text"]
+            print(json.dumps({"event": "text_generation", "path": path, "status": "completed",
+                              "seconds": round(time.monotonic() - started, 2)}), flush=True)
             return {**result, "session": sid, "calls": session["calls"], "total_calls": self.total,
                     "answered_rounds": answered_rounds, "allow_dialogue": allow_dialogue,
                     "seconds": round(time.monotonic() - started, 2), "model": MODEL,
