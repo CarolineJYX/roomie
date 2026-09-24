@@ -56,6 +56,7 @@ img { max-width: 100%; }
 .chapter-mark::before { content: ""; width: 26px; height: 4px; background: var(--accent); }
 
 .photo-frame { position: relative; overflow: hidden; background: #ddd4c8; }
+.photo-frame picture { display: block; width: 100%; height: 100%; }
 .photo-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .comic-photo img, .comic-panel img { filter: none; }
 .comic-photo::after, .comic-panel .panel-ink { content: ""; position: absolute; inset: 0; background: linear-gradient(130deg, rgba(255,215,87,.18), rgba(255,90,78,.08) 55%, rgba(90,181,255,.19)); mix-blend-mode: color; pointer-events: none; }
@@ -359,6 +360,7 @@ body[data-energy="quiet"] .hero-photo-real, body[data-energy="quiet"] .hero-phot
 
 /* Complete model-generated comic: preserve all lettering and panel composition. */
 .hero-longcomic { position:absolute; width:54%; height:auto; right:0; top:0; padding:6px; background:#fff; border:2px solid var(--ink); transform:rotate(3deg); box-shadow:8px 10px 0 rgba(33,30,28,.18); cursor:zoom-in; }
+.hero-longcomic picture { display:block; width:100%; }
 .hero-longcomic img { display:block; width:100%; height:auto; filter:none; }
 .hero-visual { min-height:680px; }
 .hero-photo-real { width:47%; height:35%; top:14%; left:-3%; }

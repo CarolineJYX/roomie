@@ -1,6 +1,8 @@
 const { useEffect, useMemo, useRef, useState } = React;
 const SAMPLE_PHOTO = "assets/dorm-original-photo.png";
 const COMIC_EXPORTS = { b: "assets/report-day-comic.png" };
+const HOME_PHOTO_SOURCES = "assets/dorm-original-photo-home-480-v1.webp 480w, assets/dorm-original-photo-home-960-v1.webp 960w";
+const HOME_COMIC_SOURCES = "assets/report-day-comic-home-480-v1.webp 480w, assets/report-day-comic-home-800-v1.webp 800w";
 const SAMPLE_ANSWERS = [
   "大学报到的中午，我们在校门口吃了黄焖鸡米饭。",
   "我不太会铺床，是她主动来帮我。用半天时间把宿舍收拾好，那天下午辅导员为我们拍了合影。",
@@ -75,9 +77,17 @@ const AppHeader = ({ screen, onHome, onBack }) => {
   );
 };
 
-const PhotoFrame = ({ src, comic = false, className = "", alt = "朋友合照" }) => (
+const imageFallback = (event, fallback) => {
+  event.currentTarget.parentElement?.querySelectorAll("source").forEach((source) => source.remove());
+  if (event.currentTarget.src !== new URL(fallback, window.location.href).href) event.currentTarget.src = fallback;
+};
+
+const PhotoFrame = ({ src, srcSet, sizes, width, height, comic = false, className = "", alt = "朋友合照" }) => (
   <div className={`photo-frame ${comic ? "comic-photo" : ""} ${className}`}>
-    <img src={src} alt={alt} />
+    <picture>
+      {srcSet ? <source type="image/webp" srcSet={srcSet} sizes={sizes} /> : null}
+      <img src={src} alt={alt} width={width} height={height} decoding="async" onError={(event) => imageFallback(event, src)} />
+    </picture>
     {comic ? <div className="halftone"></div> : null}
   </div>
 );
@@ -101,11 +111,14 @@ function Landing({ photo, onStart, onSample }) {
       </div>
       <div className="hero-visual" aria-label="从一张真实照片展开为多格漫画">
         <div className="hero-label label-photo">唯一原照片</div>
-        <PhotoFrame src={photo} className="hero-photo-real" />
+        <PhotoFrame src={photo} srcSet={HOME_PHOTO_SOURCES} sizes="(max-width: 720px) 46vw, 24vw" width="1448" height="1086" className="hero-photo-real" />
         <div className="hero-arrow"><SvgIcon name="arrow" size={28} /></div>
         <div className="hero-label label-comic">展开成第 01 话</div>
         <button className="hero-longcomic" onClick={onSample} aria-label="打开完整大学漫画示例">
-          <img src={COMIC_EXPORTS.b} alt="由一张宿舍合照展开的六格大学生活漫画，含中文旁白" />
+          <picture>
+            <source type="image/webp" srcSet={HOME_COMIC_SOURCES} sizes="(max-width: 720px) 67vw, 28vw" />
+            <img src={COMIC_EXPORTS.b} width="941" height="1672" decoding="async" fetchPriority="high" onError={(event) => imageFallback(event, COMIC_EXPORTS.b)} alt="由一张宿舍合照展开的六格大学生活漫画，含中文旁白" />
+          </picture>
         </button>
         <div className="hero-caption">
           <b>《报到第一天的合影》</b>

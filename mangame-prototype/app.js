@@ -8,6 +8,8 @@ const SAMPLE_PHOTO = "assets/dorm-original-photo.png";
 const COMIC_EXPORTS = {
   b: "assets/report-day-comic.png"
 };
+const HOME_PHOTO_SOURCES = "assets/dorm-original-photo-home-480-v1.webp 480w, assets/dorm-original-photo-home-960-v1.webp 960w";
+const HOME_COMIC_SOURCES = "assets/report-day-comic-home-480-v1.webp 480w, assets/report-day-comic-home-800-v1.webp 800w";
 const SAMPLE_ANSWERS = ["大学报到的中午，我们在校门口吃了黄焖鸡米饭。", "我不太会铺床，是她主动来帮我。用半天时间把宿舍收拾好，那天下午辅导员为我们拍了合影。", "转眼，我们已经毕业4年了。"];
 const SvgIcon = ({
   name,
@@ -172,17 +174,33 @@ const AppHeader = ({
     }
   })) : null);
 };
+const imageFallback = (event, fallback) => {
+  event.currentTarget.parentElement?.querySelectorAll("source").forEach(source => source.remove());
+  if (event.currentTarget.src !== new URL(fallback, window.location.href).href) event.currentTarget.src = fallback;
+};
 const PhotoFrame = ({
   src,
+  srcSet,
+  sizes,
+  width,
+  height,
   comic = false,
   className = "",
   alt = "朋友合照"
 }) => /*#__PURE__*/React.createElement("div", {
   className: `photo-frame ${comic ? "comic-photo" : ""} ${className}`
-}, /*#__PURE__*/React.createElement("img", {
+}, /*#__PURE__*/React.createElement("picture", null, srcSet ? /*#__PURE__*/React.createElement("source", {
+  type: "image/webp",
+  srcSet: srcSet,
+  sizes: sizes
+}) : null, /*#__PURE__*/React.createElement("img", {
   src: src,
-  alt: alt
-}), comic ? /*#__PURE__*/React.createElement("div", {
+  alt: alt,
+  width: width,
+  height: height,
+  decoding: "async",
+  onError: event => imageFallback(event, src)
+})), comic ? /*#__PURE__*/React.createElement("div", {
   className: "halftone"
 }) : null);
 function Landing({
@@ -222,6 +240,10 @@ function Landing({
     className: "hero-label label-photo"
   }, "\u552F\u4E00\u539F\u7167\u7247"), /*#__PURE__*/React.createElement(PhotoFrame, {
     src: photo,
+    srcSet: HOME_PHOTO_SOURCES,
+    sizes: "(max-width: 720px) 46vw, 24vw",
+    width: "1448",
+    height: "1086",
     className: "hero-photo-real"
   }), /*#__PURE__*/React.createElement("div", {
     className: "hero-arrow"
@@ -234,10 +256,19 @@ function Landing({
     className: "hero-longcomic",
     onClick: onSample,
     "aria-label": "\u6253\u5F00\u5B8C\u6574\u5927\u5B66\u6F2B\u753B\u793A\u4F8B"
-  }, /*#__PURE__*/React.createElement("img", {
+  }, /*#__PURE__*/React.createElement("picture", null, /*#__PURE__*/React.createElement("source", {
+    type: "image/webp",
+    srcSet: HOME_COMIC_SOURCES,
+    sizes: "(max-width: 720px) 67vw, 28vw"
+  }), /*#__PURE__*/React.createElement("img", {
     src: COMIC_EXPORTS.b,
+    width: "941",
+    height: "1672",
+    decoding: "async",
+    fetchPriority: "high",
+    onError: event => imageFallback(event, COMIC_EXPORTS.b),
     alt: "\u7531\u4E00\u5F20\u5BBF\u820D\u5408\u7167\u5C55\u5F00\u7684\u516D\u683C\u5927\u5B66\u751F\u6D3B\u6F2B\u753B\uFF0C\u542B\u4E2D\u6587\u65C1\u767D"
-  })), /*#__PURE__*/React.createElement("div", {
+  }))), /*#__PURE__*/React.createElement("div", {
     className: "hero-caption"
   }, /*#__PURE__*/React.createElement("b", null, "\u300A\u62A5\u5230\u7B2C\u4E00\u5929\u7684\u5408\u5F71\u300B"), /*#__PURE__*/React.createElement("span", null, "\u4E00\u987F\u5348\u996D\u3001\u4E00\u8D77\u94FA\u5E8A\u3001\u7B2C\u4E00\u6B21\u5408\u5F71\u3002\u8F6C\u773C\uFF0C\u5DF2\u7ECF\u6BD5\u4E1A4\u5E74\u3002")), /*#__PURE__*/React.createElement("div", {
     className: "burst burst-one"
